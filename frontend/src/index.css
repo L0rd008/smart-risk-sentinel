@@ -1,0 +1,141 @@
+/* Smart-Risk Sentinel — Global Styles
+ * Owned by Member 4 (React Frontend).
+ *
+ * Provides a CSS reset and base design tokens. Individual component
+ * styling can remain inline or be extracted to separate CSS files —
+ * this file just ensures a consistent baseline across browsers.
+ */
+
+/* ---------------------------------------------------------------
+   1. CSS Reset (modern minimal)
+   --------------------------------------------------------------- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Prevent text inflation on mobile */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Smooth scroll for anchor links */
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+               Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f4f6f8;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* ---------------------------------------------------------------
+   2. Design Tokens (CSS custom properties)
+   --------------------------------------------------------------- */
+
+:root {
+  /* Brand / accent */
+  --color-primary:     #1a73e8;
+  --color-primary-dark:#1557b0;
+  --color-primary-light:#4a90e2;
+
+  /* Risk grade palette */
+  --color-green:       #34a853;
+  --color-green-bg:    #e6f4ea;
+  --color-amber:       #f9ab00;
+  --color-amber-bg:    #fef7e0;
+  --color-red:         #ea4335;
+  --color-red-bg:      #fce8e6;
+
+  /* Neutrals */
+  --color-bg:          #f4f6f8;
+  --color-surface:     #ffffff;
+  --color-border:      #dadce0;
+  --color-text:        #1a1a1a;
+  --color-text-muted:  #5f6368;
+
+  /* Spacing scale */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:  0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* ---------------------------------------------------------------
+   3. Utility classes (optional, Member 4 can extend)
+   --------------------------------------------------------------- */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 14px;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+/* Risk-grade badge colours */
+.grade-low    { background: var(--color-green-bg); color: var(--color-green); }
+.grade-medium { background: var(--color-amber-bg); color: var(--color-amber); }
+.grade-high   { background: var(--color-red-bg);   color: var(--color-red); }

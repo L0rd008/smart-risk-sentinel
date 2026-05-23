@@ -52,14 +52,11 @@ pip install -r requirements.txt
 ```
 
 ### 3. Configure environment
-Create a `.env` file in `backend/`:
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=smart_risk_sentinel
-DB_USER=postgres
-DB_PASSWORD=your_password_here
-FLASK_ENV=development
+Copy the template and fill in your local PostgreSQL password:
+```bash
+cd backend
+cp .env.example .env
+# Edit .env with your DB_PASSWORD
 ```
 
 ### 4. Create the database
@@ -101,9 +98,15 @@ override.
 ## Running tests
 
 ```bash
+# From the backend/ directory (recommended):
 cd backend
-pytest tests/
+pytest tests/ -v
+
+# Or from the repo root:
+pytest backend/tests/ -v
 ```
+
+The `backend/pytest.ini` ensures `app` is importable from either location.
 
 ---
 
@@ -152,6 +155,8 @@ smart-risk-sentinel/
 │   │   └── seed_data.py     Generates ~1,000 synthetic borrowers
 │   ├── tests/
 │   │   └── test_scorecard.py
+│   ├── .env.example         Template — copy to .env and fill in
+│   ├── pytest.ini           Test runner config (pythonpath)
 │   ├── requirements.txt
 │   └── run.py
 ├── frontend/
@@ -164,6 +169,7 @@ smart-risk-sentinel/
 │   │   ├── services/
 │   │   │   └── api.js       Axios calls to the Flask API
 │   │   ├── App.jsx
+│   │   ├── index.css        CSS reset + design tokens
 │   │   └── index.js
 │   ├── public/
 │   │   └── index.html
