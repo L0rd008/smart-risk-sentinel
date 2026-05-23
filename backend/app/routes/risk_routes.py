@@ -37,9 +37,8 @@ def _error(code: str, message: str, http_status: int):
 def _fetch_borrower(customer_id: str) -> dict[str, Any] | None:
     """Read a single borrower joined with their latest lease + sector NPL.
 
-    TODO (Member 1 + Member 3): finalise SQL once schema.sql is loaded into
-    the dev database. The shape returned MUST match the borrower contract
-    in API_CONTRACT.md so Scorecard.calculate works directly.
+    The shape returned matches the borrower contract in API_CONTRACT.md
+    so Scorecard.calculate works directly.
     """
     sql = """
         SELECT
@@ -73,6 +72,69 @@ def _fetch_borrower(customer_id: str) -> dict[str, Any] | None:
     return dict(row) if row else None
 
 
+def _fetch_all_borrowers() -> list[dict[str, Any]]:
+    """Batch-fetch ALL borrowers with lease + sector data in a single query.
+
+    Eliminates the N+1 pattern: instead of 1 + N individual queries,
+    this runs one JOIN and returns all rows at once. Each row has the
+    same shape as _fetch_borrower so Scorecard.calculate works directly.
+    """
+    sql = """
+        SELECT
+            b.customer_id::text AS customer_id,
+            b.name,
+            b.age,
+            b.sector_code,
+            b.annual_income,
+            b.monthly_income,
+            b.monthly_obligations,
+            b.crib_grade,
+            b.net_worth,
+            b.app_login_freq,
+            b.created_at,
+            la.vehicle_type,
+            la.vehicle_value,
+            la.loan_amount,
+            la.ltv_ratio,
+            la.dpd_current,
+            la.dpd_pattern,
+            s.npl_ratio AS sector_npl,
+            s.sector_name AS sector
+        FROM borrowers b
+        LEFT JOIN lease_agreements la ON la.customer_id = b.customer_id
+        LEFT JOIN sector_reference s   ON s.sector_code = b.sector_code
+        ORDER BY b.name
+    """
+    with get_connection() as conn, dict_cursor(conn) as cur:
+        cur.execute(sql)
+        return [dict(r) for r in cur.fetchall()]
+
+
+def _log_risk_score(
+    customer_id: str,
+    score: int,
+    grade: str,
+    breach: bool,
+) -> None:
+    """Write an entry to risk_scores_log for audit trail purposes.
+
+    Called on individual risk assessments (GET /risk/:id). Batch
+    endpoints (list, snapshot) do NOT log to avoid flooding the table.
+    Failures are silently ignored — logging must never break scoring.
+    """
+    sql = """
+        INSERT INTO risk_scores_log
+            (customer_id, score, grade, compliance_breach)
+        VALUES (%s, %s, %s, %s)
+    """
+    try:
+        with get_connection() as conn, dict_cursor(conn) as cur:
+            cur.execute(sql, (customer_id, score, grade, breach))
+    except Exception:
+        # Audit logging is best-effort; never let it break a request.
+        pass
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -86,37 +148,21 @@ def health():
 def list_borrowers():
     """List all borrowers (summary only).
 
-    TODO (Member 3): replace the score column with the latest entry from
-    risk_scores_log once Member 1 has the seed script writing to that table.
-    For now we compute live for each row, which is fine at 1k records.
+    Uses a single batch query (_fetch_all_borrowers) to avoid the N+1
+    pattern. Scores are computed in-memory which is fast for ~1k records.
     """
-    sql = """
-        SELECT
-            b.customer_id::text AS customer_id,
-            b.name,
-            s.sector_name AS sector,
-            b.created_at AS last_updated
-        FROM borrowers b
-        LEFT JOIN sector_reference s ON s.sector_code = b.sector_code
-        ORDER BY b.name
-    """
-    with get_connection() as conn, dict_cursor(conn) as cur:
-        cur.execute(sql)
-        rows = [dict(r) for r in cur.fetchall()]
+    all_rows = _fetch_all_borrowers()
 
     borrowers = []
-    for r in rows:
-        full = _fetch_borrower(r["customer_id"])
-        if full is None:
-            continue
-        risk = _scorecard.calculate(full)
+    for row in all_rows:
+        risk = _scorecard.calculate(row)
         borrowers.append({
-            "customer_id":  r["customer_id"],
-            "name":         r["name"],
+            "customer_id":  row["customer_id"],
+            "name":         row["name"],
             "risk_grade":   risk["risk_grade"],
             "risk_score":   risk["risk_score"],
-            "sector":       r["sector"],
-            "last_updated": r["last_updated"].isoformat() if r["last_updated"] else None,
+            "sector":       row.get("sector"),
+            "last_updated": row["created_at"].isoformat() if row.get("created_at") else None,
         })
 
     return jsonify({"borrowers": borrowers, "total": len(borrowers)})
@@ -150,24 +196,35 @@ def get_borrower(customer_id: str):
 
 @risk_bp.route("/risk/<customer_id>", methods=["GET"])
 def get_risk(customer_id: str):
-    """Full risk assessment for one borrower — runs the scoring engine."""
+    """Full risk assessment for one borrower — runs the scoring engine.
+
+    Also writes to risk_scores_log for audit trail purposes.
+    """
     borrower = _fetch_borrower(customer_id)
     if borrower is None:
         return _error("not_found", f"borrower {customer_id} not found", 404)
-    return jsonify(_scorecard.calculate(borrower))
+
+    risk = _scorecard.calculate(borrower)
+
+    # Audit log — best-effort, never blocks the response.
+    _log_risk_score(
+        customer_id=customer_id,
+        score=risk["risk_score"],
+        grade=risk["risk_grade"],
+        breach=risk["compliance_breach"],
+    )
+
+    return jsonify(risk)
 
 
 @risk_bp.route("/portfolio/snapshot", methods=["GET"])
 def portfolio_snapshot():
     """Aggregate view powering the dashboard doughnut + sector table.
 
-    TODO (Member 3 + Member 5): consider caching this in v1.1. With 1k
-    rows, recomputing per request is ~200 ms which is fine for the demo.
+    Uses a single batch query (_fetch_all_borrowers) to avoid the N+1
+    pattern. With ~1k rows, this is fast enough for the demo.
     """
-    sql = "SELECT customer_id::text AS customer_id FROM borrowers"
-    with get_connection() as conn, dict_cursor(conn) as cur:
-        cur.execute(sql)
-        ids = [r["customer_id"] for r in cur.fetchall()]
+    all_rows = _fetch_all_borrowers()
 
     by_grade = {"Low": 0, "Medium": 0, "High": 0}
     by_sector: dict[str, dict[str, Any]] = {}
@@ -175,15 +232,12 @@ def portfolio_snapshot():
     total_score = 0
     counted = 0
 
-    for cid in ids:
-        b = _fetch_borrower(cid)
-        if b is None:
-            continue
-        risk = _scorecard.calculate(b)
+    for row in all_rows:
+        risk = _scorecard.calculate(row)
         by_grade[risk["risk_grade"]] += 1
         if risk["compliance_breach"]:
             breaches += 1
-        sector = b.get("sector") or "Unknown"
+        sector = row.get("sector") or "Unknown"
         entry = by_sector.setdefault(sector, {"sector": sector, "count": 0, "_sum_score": 0})
         entry["count"] += 1
         entry["_sum_score"] += risk["risk_score"]
