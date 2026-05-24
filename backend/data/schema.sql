@@ -38,9 +38,10 @@ CREATE TABLE borrowers (
     monthly_income       NUMERIC(12,2) NOT NULL DEFAULT 0,
     monthly_obligations  NUMERIC(12,2) NOT NULL DEFAULT 0,
     crib_grade           VARCHAR(2)   NOT NULL DEFAULT 'XX'
-                                       CHECK (crib_grade IN ('A','B','C','D','E','F','G','H','XX')),
+                                       CHECK (crib_grade IN ('A','B','C','D','E','XX')),
     net_worth            NUMERIC(14,2) NOT NULL DEFAULT 0,
     app_login_freq       INT          NOT NULL DEFAULT 0,
+    province             VARCHAR(40)  NOT NULL DEFAULT 'Western',
     created_at           TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
@@ -59,6 +60,7 @@ CREATE TABLE lease_agreements (
     ltv_ratio      NUMERIC(5,4)  NOT NULL CHECK (ltv_ratio > 0 AND ltv_ratio <= 2.0),
     dpd_current    INT          NOT NULL DEFAULT 0 CHECK (dpd_current >= 0),
     dpd_pattern    INT[]        NOT NULL DEFAULT ARRAY[]::INT[],
+    tenure_months  INT          NOT NULL DEFAULT 48 CHECK (tenure_months BETWEEN 12 AND 72),
     start_date     DATE         NOT NULL DEFAULT CURRENT_DATE,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
@@ -98,15 +100,18 @@ CREATE INDEX idx_scores_customer ON risk_scores_log(customer_id, calculated_at D
 -- Initial sector reference data
 -- (NPL ratios and outlook are illustrative; tune via seed_data.py if needed)
 -- ---------------------------------------------------------------------------
+-- Sector NPL ratios calibrated against PLC's 2024/25 sector concentration
+-- data (Annual Report) and CBSL/Fitch qualitative sector risk assessments.
+-- See docs/SYNTHETIC_DATA_METHODOLOGY.md for derivation methodology.
 INSERT INTO sector_reference (sector_code, sector_name, npl_ratio, gdp_outlook) VALUES
-    ('TRANSPORT',   'Transport & Logistics',      0.045, 'Neutral'),
-    ('TOURISM',     'Tourism & Hospitality',      0.115, 'Positive'),
-    ('AGRICULTURE', 'Agriculture',                0.082, 'Neutral'),
-    ('CONSTRUCTION','Construction',               0.135, 'Negative'),
-    ('RETAIL',      'Retail Trade',               0.068, 'Neutral'),
-    ('SERVICES',    'Professional Services',      0.038, 'Positive'),
-    ('MANUFACTURING','Manufacturing',             0.072, 'Neutral'),
-    ('EDUCATION',   'Education',                  0.029, 'Positive'),
-    ('GOVERNMENT',  'Government / Public Sector', 0.022, 'Positive'),
+    ('TRANSPORT',   'Transport & Logistics',      0.040, 'Positive'),
+    ('TOURISM',     'Tourism & Hospitality',      0.080, 'Positive'),
+    ('AGRICULTURE', 'Agriculture',                0.095, 'Neutral'),
+    ('CONSTRUCTION','Construction',               0.110, 'Negative'),
+    ('RETAIL',      'Retail Trade',               0.065, 'Neutral'),
+    ('SERVICES',    'Professional Services',      0.035, 'Positive'),
+    ('MANUFACTURING','Manufacturing',             0.060, 'Neutral'),
+    ('EDUCATION',   'Education',                  0.025, 'Positive'),
+    ('GOVERNMENT',  'Government / Public Sector', 0.020, 'Positive'),
     ('OTHER',       'Other',                      0.055, 'Neutral')
 ON CONFLICT (sector_code) DO NOTHING;
