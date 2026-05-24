@@ -73,7 +73,7 @@ test panel to pre-fill the form with the borrower's current attributes.
   "age": 0,
   "sector_code": "string",
   "annual_income": 0,
-  "crib_grade": "A | B | C | D | E | F | G | H | XX",
+  "crib_grade": "A | B | C | D | E | XX",
   "vehicle_type": "Private | Commercial",
   "loan_amount": 0,
   "vehicle_value": 0,

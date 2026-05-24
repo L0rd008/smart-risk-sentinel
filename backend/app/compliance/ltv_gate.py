@@ -4,9 +4,20 @@ Owned by Member 3. This file is the single source of truth for the LTV
 cap rule — both `risk_routes.py` and the `Scorecard` engine import from
 here. **Do not re-implement the cap check elsewhere.**
 
-Source: CBSL Directions No. 03 of 2025 (Loan-to-Value Ratios for Credit
-Facilities Granted in Respect of Motor Vehicles), issued to all licensed
-finance companies.
+Source: CBSL Act Directions No. 03 of 2025 (effective 8 November 2025),
+"Loan-to-Value Ratios for Credit Facilities Granted in Respect of Motor
+Vehicles", issued to all licensed finance companies.
+
+Full LTV schedule under Dir. No. 03/2025:
+  - Motor Cars, SUVs, Vans (incl. hybrid): 50%
+  - Commercial Vehicles:                   70%
+  - Three-Wheelers:                        50%
+  - Registered Used Vehicles (>1yr in SL): 70%
+
+This prototype simplifies to Private=50% and Commercial=70%. Three-wheelers
+and used-vehicle categories are out of scope for v1.0.
+
+Ref: https://www.cbsl.gov.lk/sites/default/files/cbslweb_documents/laws/CBSL_Act_Directions_No_3_of_2025_e.pdf
 """
 from typing import Optional, TypedDict
 
