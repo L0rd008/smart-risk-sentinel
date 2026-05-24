@@ -21,9 +21,10 @@ One row per customer. The "who" of the system.
 | `annual_income`     | NUMERIC(12,2) | LKR                                                      |
 | `monthly_income`    | NUMERIC(12,2) | Used for DTI; usually `annual_income / 12`               |
 | `monthly_obligations`| NUMERIC(12,2)| Sum of existing loan instalments                         |
-| `crib_grade`        | VARCHAR(2)    | A, B, C, D, E, F, G, H, XX                               |
+| `crib_grade`        | VARCHAR(2)    | A, B, C, D, E, XX — maps to CRIB Sri Lanka's 5 risk tiers |
 | `net_worth`         | NUMERIC(14,2) | Used for Capital category                                |
 | `app_login_freq`    | INT           | Logins per month                                         |
+| `province`          | VARCHAR(40)   | Sri Lankan province (Western, Central, etc.)              |
 | `created_at`        | TIMESTAMPTZ   | Default `now()`                                          |
 
 ### 2. `lease_agreements`
@@ -40,6 +41,7 @@ prototype we'll keep it 1:1.
 | `ltv_ratio`         | NUMERIC(5,4)  | `loan_amount / vehicle_value` at origination             |
 | `dpd_current`       | INT           | Current days-past-due                                    |
 | `dpd_pattern`       | INT[]         | Last 6 months of DPD figures, oldest first               |
+| `tenure_months`     | INT           | Lease term: 24, 36, 48, or 60 months                     |
 | `start_date`        | DATE          | Lease start                                              |
 | `created_at`        | TIMESTAMPTZ   | Default `now()`                                          |
 

@@ -186,7 +186,7 @@ and are also used by `AlertDashboard.jsx` to highlight at-risk borrowers.
 | Metric                    | Green             | Amber                            | Red                                |
 |---------------------------|-------------------|----------------------------------|------------------------------------|
 | Payment delay (current)   | ≤2 days late      | 3–10 days, 3 consecutive months  | >15 days or repeated partials      |
-| CRIB Grade                | A, B, C           | D, E                             | F or below, or "XX" (no history)   |
+| CRIB Grade                | A, B, C           | D                                | E, or "XX" (no history)            |
 | LTV (Private vehicle)     | ≤40%              | 41–49%                           | ≥50% (regulatory breach)           |
 | LTV (Commercial vehicle)  | ≤60%              | 61–69%                           | ≥70% (regulatory breach)           |
 | App login frequency       | Daily / weekly    | -50% drop over 30 days           | No login for 60 days / bounced     |

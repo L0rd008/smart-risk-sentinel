@@ -131,7 +131,7 @@ def test_perfect_borrower_is_low_risk(scorecard):
 
 def test_worst_case_borrower_is_high_risk(scorecard):
     borrower = _base_borrower(
-        crib_grade="H",
+        crib_grade="E",
         monthly_income=150_000,
         monthly_obligations=130_000,    # DTI ~87%
         ltv_ratio=0.49,                 # just under cap, no breach
