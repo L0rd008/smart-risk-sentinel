@@ -122,19 +122,35 @@ MUSLIM_LAST = [
 ]
 
 
-def _sri_lankan_name() -> str:
-    """Generate a realistic Sri Lankan name.
+def _sri_lankan_name(used_names: set[str] | None = None) -> str:
+    """Generate a unique, realistic Sri Lankan name.
 
     Approximate ethnic proportions for PLC's customer base:
     ~60% Sinhalese, ~25% Tamil, ~15% Muslim.
+
+    If `used_names` is provided, the function retries until it finds a
+    name not already in the set, then adds the new name to the set before
+    returning. With ~2,142 possible combinations and 1,000 records, the
+    average retry rate is negligible (<0.5 retries by the 900th record).
     """
-    r = random.random()
-    if r < 0.60:
-        return f"{random.choice(SINHALESE_FIRST)} {random.choice(SINHALESE_LAST)}"
-    elif r < 0.85:
-        return f"{random.choice(TAMIL_FIRST)} {random.choice(TAMIL_LAST)}"
-    else:
-        return f"{random.choice(MUSLIM_FIRST)} {random.choice(MUSLIM_LAST)}"
+    for _ in range(500):  # safety cap; pool is 2× record count
+        r = random.random()
+        if r < 0.60:
+            name = f"{random.choice(SINHALESE_FIRST)} {random.choice(SINHALESE_LAST)}"
+        elif r < 0.85:
+            name = f"{random.choice(TAMIL_FIRST)} {random.choice(TAMIL_LAST)}"
+        else:
+            name = f"{random.choice(MUSLIM_FIRST)} {random.choice(MUSLIM_LAST)}"
+
+        if used_names is None or name not in used_names:
+            if used_names is not None:
+                used_names.add(name)
+            return name
+
+    raise RuntimeError(
+        f"Could not generate a unique name after 500 retries. "
+        f"Pool size ~2,142 vs {len(used_names or set())} used names."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -218,14 +234,17 @@ SECTORS = [
 # Persona generation
 # ---------------------------------------------------------------------------
 
-def generate_persona(persona_type: str) -> dict[str, Any]:
+def generate_persona(persona_type: str, used_names: set[str] | None = None) -> dict[str, Any]:
     """Return a fully-populated synthetic borrower + lease dict.
 
     Output keys are organised so the caller can split into borrower and
     lease rows for insertion. Every numeric range is sourced — see the
     inline comments and docs/SYNTHETIC_DATA_METHODOLOGY.md.
+
+    If `used_names` is provided, the generated name is guaranteed to be
+    unique across the entire seeding run.
     """
-    name = _sri_lankan_name()
+    name = _sri_lankan_name(used_names)
     age = random.randint(25, 65)
     province = _pick_province()
 
@@ -543,16 +562,19 @@ def insert_record(cur, record: dict[str, Any]) -> None:
 def main(n_records: int = 1000) -> None:
     print(f"Seeding {n_records} synthetic borrowers...")
 
+    used_names: set[str] = set()
+
     with get_connection() as conn, dict_cursor(conn) as cur:
         for i in range(n_records):
             persona = _weighted_persona_pick()
-            record = generate_persona(persona)
+            record = generate_persona(persona, used_names)
             insert_record(cur, record)
 
             if (i + 1) % 100 == 0:
                 print(f"  ... {i + 1} / {n_records}")
 
     print(f"Done. Inserted {n_records} borrowers + leases + valuations.")
+    print(f"  Unique names generated: {len(used_names)}")
 
 
 if __name__ == "__main__":
