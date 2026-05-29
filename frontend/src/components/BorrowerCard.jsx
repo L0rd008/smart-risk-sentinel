@@ -3,6 +3,9 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import InfoTip from './common/InfoTip';
+import ScoreLegend from './common/ScoreLegend';
+import { METRIC_TOOLTIPS } from '../constants/tooltips';
 
 const COLOURS = {
   Green:  { bg: '#e6f4ea', border: '#34a853', badge: '#0d5a23' },
@@ -52,55 +55,93 @@ function buildProfileCategories(borrower) {
       name: 'Capacity',
       weight: '35%',
       rows: [
-        ['Monthly Income', formatLkr(borrower.monthly_income)],
-        ['Monthly Obligations', formatLkr(borrower.monthly_obligations)],
-        [
-          'DTI Ratio',
-          formatDti(borrower.monthly_income, borrower.monthly_obligations),
-        ],
+        { label: 'Monthly Income', value: formatLkr(borrower.monthly_income) },
+        {
+          label: 'Monthly Obligations',
+          value: formatLkr(borrower.monthly_obligations),
+        },
+        {
+          label: 'DTI Ratio',
+          value: formatDti(borrower.monthly_income, borrower.monthly_obligations),
+          tip: METRIC_TOOLTIPS.dti,
+        },
       ],
     },
     {
       name: 'Character',
       weight: '30%',
       rows: [
-        ['CRIB Grade', borrower.crib_grade ?? 'N/A'],
-        ['Days Past Due (Current)', borrower.dpd_current ?? 'N/A'],
-        ['DPD History (6 months)', formatDpdPattern(borrower.dpd_pattern)],
-        ['App Logins/Month', borrower.app_login_freq ?? 'N/A'],
+        {
+          label: 'CRIB Grade',
+          value: borrower.crib_grade ?? 'N/A',
+          tip: METRIC_TOOLTIPS.cribGrade,
+        },
+        {
+          label: 'Days Past Due (Current)',
+          value: borrower.dpd_current ?? 'N/A',
+          tip: METRIC_TOOLTIPS.dpd,
+        },
+        {
+          label: 'DPD History (6 months)',
+          value: formatDpdPattern(borrower.dpd_pattern),
+        },
+        {
+          label: 'App Logins/Month',
+          value: borrower.app_login_freq ?? 'N/A',
+          tip: METRIC_TOOLTIPS.appLogin,
+        },
       ],
     },
     {
       name: 'Collateral',
       weight: '20%',
       rows: [
-        ['Vehicle Type', borrower.vehicle_type ?? 'N/A'],
-        ['Vehicle Value', formatLkr(borrower.vehicle_value)],
-        ['Loan Amount', formatLkr(borrower.loan_amount)],
-        ['LTV Ratio', formatPct(borrower.ltv_ratio)],
+        { label: 'Vehicle Type', value: borrower.vehicle_type ?? 'N/A' },
+        { label: 'Vehicle Value', value: formatLkr(borrower.vehicle_value) },
+        { label: 'Loan Amount', value: formatLkr(borrower.loan_amount) },
+        {
+          label: 'LTV Ratio',
+          value: formatPct(borrower.ltv_ratio),
+          tip: METRIC_TOOLTIPS.ltv,
+        },
       ],
     },
     {
       name: 'Conditions',
       weight: '10%',
       rows: [
-        ['Sector', borrower.sector_code ?? 'N/A'],
-        ['Sector NPL', formatSectorNpl(borrower.sector_npl)],
+        { label: 'Sector', value: borrower.sector_code ?? 'N/A' },
+        {
+          label: 'Sector NPL',
+          value: formatSectorNpl(borrower.sector_npl),
+          tip: METRIC_TOOLTIPS.sectorNpl,
+        },
       ],
     },
     {
       name: 'Capital',
       weight: '5%',
       rows: [
-        [
-          'Net Worth',
-          borrower.net_worth != null
-            ? formatLkr(borrower.net_worth)
-            : 'N/A',
-        ],
+        {
+          label: 'Net Worth',
+          value:
+            borrower.net_worth != null
+              ? formatLkr(borrower.net_worth)
+              : 'N/A',
+          tip: METRIC_TOOLTIPS.netWorth,
+        },
       ],
     },
   ];
+}
+
+function MetricLabel({ label, tip }) {
+  return (
+    <>
+      {label}
+      {tip && <InfoTip text={tip} />}
+    </>
+  );
 }
 
 function BorrowerProfile({ borrower }) {
@@ -108,7 +149,10 @@ function BorrowerProfile({ borrower }) {
 
   return (
     <section style={styles.section}>
-      <h3 style={styles.h3}>Borrower Profile</h3>
+      <h3 style={styles.h3}>
+        Borrower Profile
+        <InfoTip text={METRIC_TOOLTIPS.fiveCs} />
+      </h3>
       <div style={styles.profileGrid}>
         {categories.map((cat) => (
           <div key={cat.name} style={styles.profileCard}>
@@ -116,10 +160,12 @@ function BorrowerProfile({ borrower }) {
               {cat.name} ({cat.weight})
             </div>
             <dl style={styles.profileDl}>
-              {cat.rows.map(([label, value]) => (
-                <div key={label} style={styles.profileRow}>
-                  <dt style={styles.profileLabel}>{label}</dt>
-                  <dd style={styles.profileValue}>{value}</dd>
+              {cat.rows.map((row) => (
+                <div key={row.label} style={styles.profileRow}>
+                  <dt style={styles.profileLabel}>
+                    <MetricLabel label={row.label} tip={row.tip} />
+                  </dt>
+                  <dd style={styles.profileValue}>{row.value}</dd>
                 </div>
               ))}
             </dl>
@@ -178,9 +224,14 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
             </div>
           </div>
           <div style={styles.scoreBlock}>
+            <div style={styles.scoreLabel}>
+              Risk Score
+              <InfoTip text={METRIC_TOOLTIPS.riskScore} />
+            </div>
             <div style={{ ...styles.scoreNumber, color: palette.border }}>
               {risk.risk_score}
             </div>
+            <ScoreLegend />
             <div
               style={{
                 ...styles.gradeBadge,
@@ -215,7 +266,10 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
         </section>
 
         <section style={styles.section}>
-          <h3 style={styles.h3}>Early Warning Indicators</h3>
+          <h3 style={styles.h3}>
+            Early Warning Indicators
+            <InfoTip text={METRIC_TOOLTIPS.ewi} />
+          </h3>
           <div style={styles.ewiGrid}>
             {risk.ewi_flags.map((f, i) => (
               <div
@@ -241,9 +295,14 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
         </section>
 
         <section style={styles.section}>
-          <h3 style={styles.h3}>Recommended Action</h3>
-          <p style={styles.actionText}>{risk.recommended_action}</p>
-        </section>
+  <h3 style={styles.h3}>Recommended Action</h3>
+
+  <div style={styles.actionBox}>
+    <p style={styles.actionText}>
+      {risk.recommended_action}
+    </p>
+  </div>
+</section>
 
         <button style={styles.stressBtn} onClick={onStressTest}>
           Run stress test &rarr;
@@ -263,7 +322,7 @@ const styles = {
   card: {
     borderRadius: 8,
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   cardHeader: {
     display: 'flex',
@@ -274,7 +333,19 @@ const styles = {
   cardBody: { padding: '20px 24px 24px' },
   name: { margin: 0, fontSize: 24, color: NEUTRAL.text },
   meta: { fontSize: 13, color: NEUTRAL.muted, marginTop: 4 },
-  scoreBlock: { textAlign: 'right' },
+  scoreBlock: {
+    textAlign: 'right',
+    minWidth: 220,
+    flexShrink: 0,
+  },
+  scoreLabel: {
+    fontSize: 12,
+    color: NEUTRAL.muted,
+    marginBottom: 4,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
   scoreNumber: { fontSize: 42, fontWeight: 700, lineHeight: 1 },
   gradeBadge: {
     display: 'inline-block',
@@ -299,6 +370,18 @@ const styles = {
     letterSpacing: 0.6,
     color: NEUTRAL.muted,
   },
+  actionBox: {
+    background: '#e8edf6',
+    borderLeft: '5px solid #1a73e8',
+    borderRadius: 4,
+    padding: '14px 18px',
+  },
+  actionText: {
+    margin: 0,
+    fontSize: 14,
+    lineHeight: 1.7,
+    color: NEUTRAL.text,
+  },
   profileGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
@@ -306,7 +389,7 @@ const styles = {
   },
   profileCard: {
     background: '#f8f9fa',
-    border: `1px solid ${NEUTRAL.border}`,
+    border: '1px solid #1a73e8',
     borderRadius: 6,
     padding: 12,
   },
