@@ -9,9 +9,13 @@ const GRADE_COLOURS = {
   Medium: '#f9ab00',
   High:   '#ea4335',
 };
-const CRIB_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'XX'];
+const CRIB_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'XX'];
 
-export default function StressTestPanel({ customerId, onBack }) {
+export default function StressTestPanel({
+  customerId,
+  onBack,
+  backLabel = 'Back to alerts',
+}) {
   const [borrower, setBorrower] = useState(null);
   const [baseline, setBaseline] = useState(null);
   const [overrides, setOverrides] = useState({});
@@ -56,7 +60,7 @@ export default function StressTestPanel({ customerId, onBack }) {
   return (
     <div>
       <button onClick={onBack} style={styles.backBtn}>
-        &larr; Back
+        &larr; {backLabel}
       </button>
 
       <div style={styles.wrap}>
