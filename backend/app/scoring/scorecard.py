@@ -162,11 +162,7 @@ class Scorecard:
 
     def _classify(self, score: int, compliance_breach: bool) -> tuple[str, str]:
         """Translate score (and any regulatory breach) to grade + colour.
-
-        A compliance breach forces High/Red regardless of numeric score.
         """
-        if compliance_breach:
-            return "High", "Red"
         bands = self.config["score_bands"]
         if score >= bands["low_min"]:
             return "Low", "Green"
