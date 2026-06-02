@@ -19,17 +19,15 @@ const VIEWS = {
 const TABS = [
   { id: VIEWS.DASHBOARD, label: 'Dashboard' },
   { id: VIEWS.ALERTS,    label: 'Alerts' },
+  { id: VIEWS.STRESSTEST, label: 'Stress Test' },
 ];
 
 /** Which header tab should appear selected for the current view. */
 function activeTabFor(view) {
-  if (
-    view === VIEWS.ALERTS ||
-    view === VIEWS.BORROWER ||
-    view === VIEWS.STRESSTEST
-  ) {
-    return VIEWS.ALERTS;
-  }
+  // Map each view to the header tab that should be highlighted.
+  if (view === VIEWS.ALERTS) return VIEWS.ALERTS;
+  if (view === VIEWS.STRESSTEST) return VIEWS.STRESSTEST;
+  if (view === VIEWS.BORROWER) return VIEWS.DASHBOARD;
   return VIEWS.DASHBOARD;
 }
 
@@ -80,13 +78,26 @@ export default function App() {
               {tab.label}
             </button>
           ))}
-          <span style={styles.apiStatus}>
-            API:{' '}
-            {apiReachable === null
-              ? 'checking...'
-              : apiReachable
-              ? 'connected'
-              : 'unreachable'}
+          <span
+            style={styles.apiStatus}
+            title={
+              apiReachable === null
+                ? 'API: checking...'
+                : apiReachable
+                ? 'API: connected'
+                : 'API: unreachable'
+            }
+            aria-live="polite"
+          >
+            <span
+              style={{
+                ...styles.statusDot,
+                background:
+                  apiReachable === null ? '#9aa4b2' : apiReachable ? '#34a853' : '#ea4335',
+              }}
+              aria-hidden="true"
+            />
+            <span style={styles.statusLabel}>API</span>
           </span>
         </nav>
       </header>
@@ -97,9 +108,9 @@ export default function App() {
             <button
               type="button"
               style={styles.breadcrumbLink}
-              onClick={() => setView(VIEWS.ALERTS)}
+              onClick={() => setView(VIEWS.DASHBOARD)}
             >
-              Alerts
+              Dashboard
             </button>
             <span style={styles.breadcrumbSep}>&gt;</span>
             <span style={styles.breadcrumbCurrent}>Borrower Detail</span>
@@ -119,6 +130,9 @@ export default function App() {
           <BorrowerCard
             customerId={selectedId}
             onStressTest={() => openStressTest(selectedId, VIEWS.BORROWER)}
+            // When viewing a borrower, the header/tab should remain Dashboard
+            // but the back action should return the user to Alerts (where they
+            // typically arrived from).
             onBack={() => setView(VIEWS.ALERTS)}
           />
         )}
@@ -129,9 +143,9 @@ export default function App() {
               <button
                 type="button"
                 style={styles.breadcrumbLink}
-                onClick={() => setView(VIEWS.ALERTS)}
+                onClick={() => setView(VIEWS.DASHBOARD)}
               >
-                Alerts
+                Dashboard
               </button>
               {returnView === VIEWS.BORROWER && (
                 <>
@@ -200,6 +214,16 @@ const styles = {
     borderColor: 'white',
   },
   apiStatus: { fontSize: '12px', opacity: 0.85, marginLeft: 8 },
+  statusDot: {
+    display: 'inline-block',
+    width: 10,
+    height: 10,
+    borderRadius: 10,
+    marginRight: 8,
+    verticalAlign: 'middle',
+    boxShadow: '0 0 0 2px rgba(255,255,255,0.12) inset',
+  },
+  statusLabel: { fontSize: 12, color: 'rgba(255,255,255,0.9)', opacity: 0.85 },
   main: { padding: '24px' },
   breadcrumb: {
     display: 'flex',

@@ -197,9 +197,16 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
 
   return (
     <div>
-      <button onClick={onBack} style={styles.backBtn}>
-        &larr; Back to alerts
-      </button>
+      <div style={styles.topRow}>
+        <button onClick={onBack} style={styles.backBtn}>
+          &larr; Back to alerts
+        </button>
+        <div style={styles.topRightControls}>
+          <button style={styles.stressBtnHeader} onClick={onStressTest}>
+            Run stress test
+          </button>
+        </div>
+      </div>
 
       <div
         style={{
@@ -304,9 +311,6 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
   </div>
 </section>
 
-        <button style={styles.stressBtn} onClick={onStressTest}>
-          Run stress test &rarr;
-        </button>
         </div>
       </div>
     </div>
@@ -318,6 +322,21 @@ const styles = {
     marginBottom: 12, padding: '6px 12px',
     background: 'transparent', border: '1px solid #aaa',
     borderRadius: 4, cursor: 'pointer',
+  },
+  topRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  topRightControls: { display: 'flex', gap: 8 },
+  stressBtnHeader: {
+    padding: '6px 12px',
+    background: '#1a73e8',
+    color: 'white',
+    border: 'none',
+    borderRadius: 4,
+    cursor: 'pointer',
   },
   card: {
     borderRadius: 8,
