@@ -3,15 +3,21 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import InfoTip from './common/InfoTip';
+import { METRIC_TOOLTIPS } from '../constants/tooltips';
 
 const GRADE_COLOURS = {
   Low:    '#34a853',
   Medium: '#f9ab00',
   High:   '#ea4335',
 };
-const CRIB_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'XX'];
+const CRIB_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'XX'];
 
-export default function StressTestPanel({ customerId, onBack }) {
+export default function StressTestPanel({
+  customerId,
+  onBack,
+  backLabel = 'Back to alerts',
+}) {
   const [borrower, setBorrower] = useState(null);
   const [baseline, setBaseline] = useState(null);
   const [overrides, setOverrides] = useState({});
@@ -56,7 +62,7 @@ export default function StressTestPanel({ customerId, onBack }) {
   return (
     <div>
       <button onClick={onBack} style={styles.backBtn}>
-        &larr; Back
+        &larr; {backLabel}
       </button>
 
       <div style={styles.wrap}>
@@ -64,9 +70,20 @@ export default function StressTestPanel({ customerId, onBack }) {
         <p style={styles.sub}>
           Adjust the inputs below to simulate a risk event. Nothing is saved.
         </p>
-
+        <p style={styles.howItWorks}>
+          <strong>What is a stress test?</strong> A stress test simulates
+          &ldquo;what-if&rdquo; scenarios. Adjust the sliders below to see how
+          the borrower&apos;s risk score would change if their financial
+          situation deteriorated — for example, if vehicle values dropped
+          (higher LTV) or they missed payments (higher DPD). Nothing is saved
+          to the database — this is a simulation only.
+        </p>
+        <div style={styles.controlsCard}>
         <div style={styles.grid}>
-          <Field label={`LTV ratio: ${(overrides.ltv_ratio * 100).toFixed(0)}%`}>
+          <Field
+            label={`LTV ratio: ${(overrides.ltv_ratio * 100).toFixed(0)}%`}
+            tip={METRIC_TOOLTIPS.ltv}
+          >
             <input
               type="range" min={0.1} max={1.0} step={0.01}
               value={overrides.ltv_ratio}
@@ -76,7 +93,10 @@ export default function StressTestPanel({ customerId, onBack }) {
             />
           </Field>
 
-          <Field label={`DPD (current): ${overrides.dpd_current} days`}>
+          <Field
+            label={`DPD (current): ${overrides.dpd_current} days`}
+            tip={METRIC_TOOLTIPS.dpd}
+          >
             <input
               type="range" min={0} max={90} step={1}
               value={overrides.dpd_current}
@@ -86,7 +106,10 @@ export default function StressTestPanel({ customerId, onBack }) {
             />
           </Field>
 
-          <Field label={`CRIB grade: ${overrides.crib_grade}`}>
+          <Field
+            label={`CRIB grade: ${overrides.crib_grade}`}
+            tip={METRIC_TOOLTIPS.cribGrade}
+          >
             <select
               value={overrides.crib_grade}
               onChange={(e) => updateOverride('crib_grade', e.target.value)}
@@ -97,7 +120,10 @@ export default function StressTestPanel({ customerId, onBack }) {
             </select>
           </Field>
 
-          <Field label={`App login frequency: ${overrides.app_login_freq}/month`}>
+          <Field
+            label={`App login frequency: ${overrides.app_login_freq}/month`}
+            tip={METRIC_TOOLTIPS.appLogin}
+          >
             <input
               type="range" min={0} max={30} step={1}
               value={overrides.app_login_freq}
@@ -106,6 +132,7 @@ export default function StressTestPanel({ customerId, onBack }) {
               }
             />
           </Field>
+        </div>
         </div>
 
         <button
@@ -125,10 +152,13 @@ export default function StressTestPanel({ customerId, onBack }) {
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, tip, children }) {
   return (
     <label style={styles.field}>
-      <span style={styles.fieldLabel}>{label}</span>
+      <span style={styles.fieldLabel}>
+        {label}
+        {tip && <InfoTip text={tip} />}
+      </span>
       {children}
     </label>
   );
@@ -175,14 +205,44 @@ const styles = {
     background: 'white', padding: 24, borderRadius: 8,
     boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
   },
-  h2: { margin: '0 0 4px 0' },
-  sub: { marginTop: 0, opacity: 0.7, fontSize: 13 },
+  h2: { margin: '0 0 8px 0', fontSize: 22 },
+  sub: {
+    marginTop: 0,
+    marginBottom: 0,
+    fontSize: 14,
+    lineHeight: 1.5,
+    color: '#444',
+  },
+  howItWorks: {
+    margin: '14px 0 0',
+    padding: '14px 16px',
+    background: '#eef3fc',
+    borderLeft: '4px solid #1a73e8',
+    borderRadius: 4,
+    fontSize: 14,
+    lineHeight: 1.6,
+    color: '#1a1a1a',
+  },
+  controlsCard: {
+    marginTop: 20,
+    padding: '18px 20px',
+    background: '#ffffff',
+    border: '1px solid #dadce0',
+    borderRadius: 8,
+    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+  },
   grid: {
     display: 'grid', gridTemplateColumns: '1fr 1fr',
     gap: 16, marginTop: 16,
   },
   field: { display: 'flex', flexDirection: 'column', gap: 4 },
-  fieldLabel: { fontSize: 13, fontWeight: 600 },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#1a1a1a',
+    display: 'flex',
+    alignItems: 'center',
+  },
   runBtn: {
     marginTop: 20, padding: '10px 20px',
     background: '#1a73e8', color: 'white',
@@ -194,7 +254,9 @@ const styles = {
     gap: 16, marginTop: 24,
   },
   panel: {
-    background: '#f4f6f8', padding: 16, borderRadius: 6,
+    background: '#f4f6f8',
+    padding: '16px 16px 18px',
+    borderRadius: 6,
   },
   h3: { margin: '0 0 12px 0' },
   score: { fontSize: 48, fontWeight: 700, lineHeight: 1 },
@@ -208,7 +270,12 @@ const styles = {
     padding: '6px 10px', borderRadius: 4,
     fontSize: 12, fontWeight: 600, marginTop: 8,
   },
-  action: { marginTop: 12, fontSize: 13 },
+  action: {
+    marginTop: 12,
+    fontSize: 13,
+    lineHeight: 1.55,
+    color: '#333',
+  },
   placeholder: { opacity: 0.6, fontSize: 13 },
   error: { padding: 16, background: '#fce8e6', color: '#a50e0e' },
 };
