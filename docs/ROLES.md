@@ -155,8 +155,8 @@ To **Member 4** (the frontend calls these endpoints).
   grade; calls `POST /api/stress-test`; shows **before / after** score
   comparison side by side.
 - `services/api.js` — all axios calls to the backend, one function per
-  endpoint, base URL from env var `REACT_APP_API_URL`
-  (defaults to `http://localhost:5000/api`).
+  endpoint, base URL from env var `REACT_APP_API_URL`, or
+  `REACT_APP_API_PORT` for local dev (defaults to `5000`).
 - `App.jsx` — simple state-based routing between views (dashboard /
   borrower detail / stress test). No `react-router` needed.
 

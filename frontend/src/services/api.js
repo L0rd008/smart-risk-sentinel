@@ -1,12 +1,13 @@
 // Smart-Risk Sentinel — API client.
 // Owned by Member 4 (React Frontend).
 // One function per endpoint defined in docs/API_CONTRACT.md.
-// Base URL comes from REACT_APP_API_URL (set in .env.local for overrides).
+// Base URL comes from REACT_APP_API_URL, or REACT_APP_API_PORT for local dev.
 
 import axios from 'axios';
 
+const API_PORT = process.env.REACT_APP_API_PORT || '5000';
 const BASE_URL =
-  process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  process.env.REACT_APP_API_URL || `http://localhost:${API_PORT}/api`;
 
 const client = axios.create({
   baseURL: BASE_URL,

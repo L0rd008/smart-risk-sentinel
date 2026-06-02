@@ -1,6 +1,6 @@
 # API Contract — Smart-Risk Sentinel
 
-**Base URL:** `http://localhost:5000/api`
+**Base URL:** `http://localhost:<FLASK_PORT>/api` (`FLASK_PORT` defaults to `5000`)
 **Version:** 1.0 (FROZEN at project start)
 
 > This document is the immutable bridge between the React frontend and the

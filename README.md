@@ -78,7 +78,7 @@ This generates ~1,000 synthetic borrowers across all persona types.
 ```bash
 cd backend
 python run.py
-# Flask listens on http://localhost:5000
+# Flask listens on http://localhost:<FLASK_PORT> (default: 5000)
 ```
 
 ### 7. Run the frontend (in a new terminal)
@@ -89,9 +89,14 @@ npm start
 # React dev server opens http://localhost:3000
 ```
 
-The frontend reads its API base URL from `REACT_APP_API_URL`, defaulting to
-`http://localhost:5000/api`. Set this in `frontend/.env.local` if you need to
-override.
+The backend port comes from `FLASK_PORT` in `backend/.env`, defaulting to
+`5000`. The frontend reads its API base URL from `REACT_APP_API_URL`, or builds
+one from `REACT_APP_API_PORT`, also defaulting to `5000`. If you change
+`FLASK_PORT`, set the same port in `frontend/.env.local`:
+
+```bash
+REACT_APP_API_PORT=5001
+```
 
 ---
 
