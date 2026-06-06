@@ -17,7 +17,7 @@ from typing import Any
 
 from flask import Blueprint, jsonify, request
 
-from app.data import fetch_borrower, fetch_all_borrowers, log_risk_score
+from app.queries import fetch_borrower, fetch_all_borrowers, log_risk_score
 from app.scoring import Scorecard
 
 
