@@ -33,7 +33,6 @@ def _error(code: str, message: str, http_status: int):
     """Uniform error response per the API contract."""
     return jsonify({"error": code, "message": message}), http_status
 
-
 def _fetch_borrower(customer_id: str) -> dict[str, Any] | None:
     """Read a single borrower joined with their latest lease + sector NPL.
 
@@ -52,12 +51,14 @@ def _fetch_borrower(customer_id: str) -> dict[str, Any] | None:
             b.crib_grade,
             b.net_worth,
             b.app_login_freq,
+            b.province,
             la.vehicle_type,
             la.vehicle_value,
             la.loan_amount,
             la.ltv_ratio,
             la.dpd_current,
             la.dpd_pattern,
+            la.tenure_months,
             s.npl_ratio AS sector_npl,
             s.sector_name AS sector
         FROM borrowers b
@@ -70,7 +71,6 @@ def _fetch_borrower(customer_id: str) -> dict[str, Any] | None:
         cur.execute(sql, (customer_id,))
         row = cur.fetchone()
     return dict(row) if row else None
-
 
 def _fetch_all_borrowers() -> list[dict[str, Any]]:
     """Batch-fetch ALL borrowers with lease + sector data in a single query.
@@ -91,6 +91,7 @@ def _fetch_all_borrowers() -> list[dict[str, Any]]:
             b.crib_grade,
             b.net_worth,
             b.app_login_freq,
+            b.province,
             b.created_at,
             la.vehicle_type,
             la.vehicle_value,
@@ -98,6 +99,7 @@ def _fetch_all_borrowers() -> list[dict[str, Any]]:
             la.ltv_ratio,
             la.dpd_current,
             la.dpd_pattern,
+            la.tenure_months,
             s.npl_ratio AS sector_npl,
             s.sector_name AS sector
         FROM borrowers b
@@ -108,7 +110,6 @@ def _fetch_all_borrowers() -> list[dict[str, Any]]:
     with get_connection() as conn, dict_cursor(conn) as cur:
         cur.execute(sql)
         return [dict(r) for r in cur.fetchall()]
-
 
 def _log_risk_score(
     customer_id: str,
@@ -176,22 +177,28 @@ def get_borrower(customer_id: str):
         return _error("not_found", f"borrower {customer_id} not found", 404)
 
     return jsonify({
-        "customer_id":         borrower["customer_id"],
-        "name":                borrower["name"],
-        "age":                 borrower["age"],
-        "sector_code":         borrower["sector_code"],
-        "annual_income":       float(borrower["annual_income"] or 0),
-        "crib_grade":          borrower["crib_grade"],
-        "vehicle_type":        borrower["vehicle_type"],
-        "loan_amount":         float(borrower["loan_amount"] or 0),
-        "vehicle_value":       float(borrower["vehicle_value"] or 0),
-        "ltv_ratio":           float(borrower["ltv_ratio"] or 0),
-        "dpd_current":         int(borrower["dpd_current"] or 0),
-        "dpd_pattern":         borrower["dpd_pattern"] or [],
-        "app_login_freq":      int(borrower["app_login_freq"] or 0),
-        "monthly_income":      float(borrower["monthly_income"] or 0),
-        "monthly_obligations": float(borrower["monthly_obligations"] or 0),
-    })
+    "customer_id":         borrower["customer_id"],
+    "name":                borrower["name"],
+    "age":                 borrower["age"],
+    "sector_code":         borrower["sector_code"],
+    "annual_income":       float(borrower["annual_income"] or 0),
+    "crib_grade":          borrower["crib_grade"],
+    "vehicle_type":        borrower["vehicle_type"],
+    "loan_amount":         float(borrower["loan_amount"] or 0),
+    "vehicle_value":       float(borrower["vehicle_value"] or 0),
+    "ltv_ratio":           float(borrower["ltv_ratio"] or 0),
+    "dpd_current":         int(borrower["dpd_current"] or 0),
+    "dpd_pattern":         borrower["dpd_pattern"] or [],
+    "app_login_freq":      int(borrower["app_login_freq"] or 0),
+    "monthly_income":      float(borrower["monthly_income"] or 0),
+    "monthly_obligations": float(borrower["monthly_obligations"] or 0),
+
+    # New fields required by frontend
+    "net_worth":           float(borrower["net_worth"] or 0),
+    "province":            borrower.get("province", "Unknown"),
+    "tenure_months":       int(borrower.get("tenure_months") or 48),
+    "sector_npl":          float(borrower.get("sector_npl") or 0),
+})
 
 
 @risk_bp.route("/risk/<customer_id>", methods=["GET"])
@@ -285,3 +292,147 @@ def stress_test():
             borrower[k] = v
 
     return jsonify(_scorecard.calculate(borrower))
+
+
+@risk_bp.route("/calculate-risk", methods=["POST"])
+def calculate_risk():
+    """Calculate a risk score directly from request JSON."""
+
+    body = request.get_json(silent=True) or {}
+
+    # ------------------------------------------------------------------
+    # Required fields
+    # ------------------------------------------------------------------
+    required_fields = [
+        "customer_id",
+        "monthly_income",
+        "monthly_obligations",
+        "crib_grade",
+        "dpd_current",
+        "vehicle_type",
+        "ltv_ratio",
+        "sector_npl",
+        "net_worth",
+        "app_login_freq",
+    ]
+
+    missing = [f for f in required_fields if f not in body]
+
+    if missing:
+        return _error(
+            "bad_request",
+            f"missing required fields: {', '.join(missing)}",
+            400,
+        )
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    # vehicle type
+    if body["vehicle_type"] not in {"Private", "Commercial"}:
+        return _error(
+            "bad_request",
+            "vehicle_type must be Private or Commercial",
+            400,
+        )
+
+    # CRIB grade
+    valid_crib = {"A", "B", "C", "D", "E", "XX"}
+    if body["crib_grade"] not in valid_crib:
+        return _error(
+            "bad_request",
+            "invalid crib_grade",
+            400,
+        )
+
+    try:
+        monthly_income = float(body["monthly_income"])
+        monthly_obligations = float(body["monthly_obligations"])
+        ltv_ratio = float(body["ltv_ratio"])
+        sector_npl = float(body["sector_npl"])
+        net_worth = float(body["net_worth"])
+
+        dpd_current = int(body["dpd_current"])
+        app_login_freq = int(body["app_login_freq"])
+
+    except (TypeError, ValueError):
+        return _error(
+            "bad_request",
+            "invalid numeric field types",
+            400,
+        )
+
+    # numeric validations
+    if monthly_income <= 0:
+        return _error(
+            "bad_request",
+            "monthly_income must be > 0",
+            400,
+        )
+
+    if monthly_obligations < 0:
+        return _error(
+            "bad_request",
+            "monthly_obligations must be >= 0",
+            400,
+        )
+
+    if ltv_ratio <= 0 or ltv_ratio > 2:
+        return _error(
+            "bad_request",
+            "ltv_ratio must be between 0 and 2",
+            400,
+        )
+
+    if dpd_current < 0:
+        return _error(
+            "bad_request",
+            "dpd_current must be >= 0",
+            400,
+        )
+
+    if sector_npl < 0:
+        return _error(
+            "bad_request",
+            "sector_npl must be >= 0",
+            400,
+        )
+
+    if net_worth < 0:
+        return _error(
+            "bad_request",
+            "net_worth must be >= 0",
+            400,
+        )
+
+    if app_login_freq < 0:
+        return _error(
+            "bad_request",
+            "app_login_freq must be >= 0",
+            400,
+        )
+
+    # ------------------------------------------------------------------
+    # Build borrower object
+    # ------------------------------------------------------------------
+    borrower = {
+        "customer_id": body["customer_id"],
+        "monthly_income": monthly_income,
+        "monthly_obligations": monthly_obligations,
+        "crib_grade": body["crib_grade"],
+        "dpd_current": dpd_current,
+        "vehicle_type": body["vehicle_type"],
+        "ltv_ratio": ltv_ratio,
+        "sector_npl": sector_npl,
+        "net_worth": net_worth,
+        "app_login_freq": app_login_freq,
+    }
+
+    # ------------------------------------------------------------------
+    # Calculate risk
+    # ------------------------------------------------------------------
+    risk = _scorecard.calculate(borrower)
+
+    return jsonify(risk)
+
