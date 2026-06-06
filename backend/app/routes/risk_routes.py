@@ -17,7 +17,7 @@ from typing import Any
 
 from flask import Blueprint, jsonify, request
 
-from app.db_connect import get_connection, dict_cursor
+from app.data import fetch_borrower, fetch_all_borrowers, log_risk_score
 from app.scoring import Scorecard
 
 
@@ -33,108 +33,6 @@ def _error(code: str, message: str, http_status: int):
     """Uniform error response per the API contract."""
     return jsonify({"error": code, "message": message}), http_status
 
-def _fetch_borrower(customer_id: str) -> dict[str, Any] | None:
-    """Read a single borrower joined with their latest lease + sector NPL.
-
-    The shape returned matches the borrower contract in API_CONTRACT.md
-    so Scorecard.calculate works directly.
-    """
-    sql = """
-        SELECT
-            b.customer_id::text AS customer_id,
-            b.name,
-            b.age,
-            b.sector_code,
-            b.annual_income,
-            b.monthly_income,
-            b.monthly_obligations,
-            b.crib_grade,
-            b.net_worth,
-            b.app_login_freq,
-            b.province,
-            la.vehicle_type,
-            la.vehicle_value,
-            la.loan_amount,
-            la.ltv_ratio,
-            la.dpd_current,
-            la.dpd_pattern,
-            la.tenure_months,
-            s.npl_ratio AS sector_npl,
-            s.sector_name AS sector
-        FROM borrowers b
-        LEFT JOIN lease_agreements la ON la.customer_id = b.customer_id
-        LEFT JOIN sector_reference s   ON s.sector_code = b.sector_code
-        WHERE b.customer_id = %s
-        LIMIT 1
-    """
-    with get_connection() as conn, dict_cursor(conn) as cur:
-        cur.execute(sql, (customer_id,))
-        row = cur.fetchone()
-    return dict(row) if row else None
-
-def _fetch_all_borrowers() -> list[dict[str, Any]]:
-    """Batch-fetch ALL borrowers with lease + sector data in a single query.
-
-    Eliminates the N+1 pattern: instead of 1 + N individual queries,
-    this runs one JOIN and returns all rows at once. Each row has the
-    same shape as _fetch_borrower so Scorecard.calculate works directly.
-    """
-    sql = """
-        SELECT
-            b.customer_id::text AS customer_id,
-            b.name,
-            b.age,
-            b.sector_code,
-            b.annual_income,
-            b.monthly_income,
-            b.monthly_obligations,
-            b.crib_grade,
-            b.net_worth,
-            b.app_login_freq,
-            b.province,
-            b.created_at,
-            la.vehicle_type,
-            la.vehicle_value,
-            la.loan_amount,
-            la.ltv_ratio,
-            la.dpd_current,
-            la.dpd_pattern,
-            la.tenure_months,
-            s.npl_ratio AS sector_npl,
-            s.sector_name AS sector
-        FROM borrowers b
-        LEFT JOIN lease_agreements la ON la.customer_id = b.customer_id
-        LEFT JOIN sector_reference s   ON s.sector_code = b.sector_code
-        ORDER BY b.name
-    """
-    with get_connection() as conn, dict_cursor(conn) as cur:
-        cur.execute(sql)
-        return [dict(r) for r in cur.fetchall()]
-
-def _log_risk_score(
-    customer_id: str,
-    score: int,
-    grade: str,
-    breach: bool,
-) -> None:
-    """Write an entry to risk_scores_log for audit trail purposes.
-
-    Called on individual risk assessments (GET /risk/:id). Batch
-    endpoints (list, snapshot) do NOT log to avoid flooding the table.
-    Failures are silently ignored — logging must never break scoring.
-    """
-    sql = """
-        INSERT INTO risk_scores_log
-            (customer_id, score, grade, compliance_breach)
-        VALUES (%s, %s, %s, %s)
-    """
-    try:
-        with get_connection() as conn, dict_cursor(conn) as cur:
-            cur.execute(sql, (customer_id, score, grade, breach))
-    except Exception:
-        # Audit logging is best-effort; never let it break a request.
-        pass
-
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -149,10 +47,10 @@ def health():
 def list_borrowers():
     """List all borrowers (summary only).
 
-    Uses a single batch query (_fetch_all_borrowers) to avoid the N+1
+    Uses a single batch query (fetch_all_borrowers) to avoid the N+1
     pattern. Scores are computed in-memory which is fast for ~1k records.
     """
-    all_rows = _fetch_all_borrowers()
+    all_rows = fetch_all_borrowers()
 
     borrowers = []
     for row in all_rows:
@@ -172,7 +70,7 @@ def list_borrowers():
 @risk_bp.route("/borrowers/<customer_id>", methods=["GET"])
 def get_borrower(customer_id: str):
     """Single borrower profile (raw data, no scoring)."""
-    borrower = _fetch_borrower(customer_id)
+    borrower = fetch_borrower(customer_id)
     if borrower is None:
         return _error("not_found", f"borrower {customer_id} not found", 404)
 
@@ -207,14 +105,14 @@ def get_risk(customer_id: str):
 
     Also writes to risk_scores_log for audit trail purposes.
     """
-    borrower = _fetch_borrower(customer_id)
+    borrower = fetch_borrower(customer_id)
     if borrower is None:
         return _error("not_found", f"borrower {customer_id} not found", 404)
 
     risk = _scorecard.calculate(borrower)
 
     # Audit log — best-effort, never blocks the response.
-    _log_risk_score(
+    log_risk_score(
         customer_id=customer_id,
         score=risk["risk_score"],
         grade=risk["risk_grade"],
@@ -228,10 +126,10 @@ def get_risk(customer_id: str):
 def portfolio_snapshot():
     """Aggregate view powering the dashboard doughnut + sector table.
 
-    Uses a single batch query (_fetch_all_borrowers) to avoid the N+1
+    Uses a single batch query (fetch_all_borrowers) to avoid the N+1
     pattern. With ~1k rows, this is fast enough for the demo.
     """
-    all_rows = _fetch_all_borrowers()
+    all_rows = fetch_all_borrowers()
 
     by_grade = {"Low": 0, "Medium": 0, "High": 0}
     by_sector: dict[str, dict[str, Any]] = {}
@@ -281,7 +179,7 @@ def stress_test():
     if not cid:
         return _error("bad_request", "customer_id is required", 400)
 
-    borrower = _fetch_borrower(cid)
+    borrower = fetch_borrower(cid)
     if borrower is None:
         return _error("not_found", f"borrower {cid} not found", 404)
 
