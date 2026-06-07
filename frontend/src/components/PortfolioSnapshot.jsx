@@ -100,7 +100,7 @@ export default function PortfolioSnapshot() {
           <h2 style={styles.h2}>Portfolio Snapshot</h2>
           <div style={styles.metrics}>
             <Metric label="Borrowers" value={snapshot.total_borrowers} />
-            <Metric label="Avg Score" value={snapshot.avg_portfolio_score} />
+            <Metric label="Avg Safety Score" value={snapshot.avg_portfolio_score} />
             <Metric
               label="Compliance Breaches"
               value={snapshot.compliance_breaches}
@@ -119,7 +119,7 @@ export default function PortfolioSnapshot() {
               <tr>
                 <th style={styles.th}>Sector</th>
                 <th style={styles.th}>Count</th>
-                <th style={styles.th}>Avg Score</th>
+                <th style={styles.th}>Avg Safety Score</th>
               </tr>
             </thead>
             <tbody>
@@ -158,7 +158,7 @@ export default function PortfolioSnapshot() {
                   <th style={styles.th}>Count</th>
                   <th style={styles.th}>Portfolio %</th>
                   <th style={styles.th}>PLC target %</th>
-                  <th style={styles.th}>Avg Score</th>
+                  <th style={styles.th}>Avg Safety Score</th>
                 </tr>
               </thead>
               <tbody>

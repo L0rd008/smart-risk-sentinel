@@ -3,13 +3,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
+import { ALERT_FILTERS, SAFETY_COLOURS, safetyTierLabel } from '../constants/safetyScore';
 
 const GRADE_SEVERITY = { High: 0, Medium: 1, Low: 2 };
-const GRADE_COLOURS = {
-  Low:    '#34a853',
-  Medium: '#f9ab00',
-  High:   '#ea4335',
-};
 
 export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
   const [borrowers, setBorrowers] = useState([]);
@@ -46,17 +42,17 @@ export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
       <header style={styles.header}>
         <h2 style={styles.h2}>Alert Dashboard</h2>
         <div style={styles.filters}>
-          {['atRisk', 'High', 'Medium', 'all'].map((f) => (
+          {ALERT_FILTERS.map(({ value, label }) => (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
+              key={value}
+              onClick={() => setFilter(value)}
               style={{
                 ...styles.filterBtn,
-                background: filter === f ? '#1a73e8' : 'white',
-                color: filter === f ? 'white' : '#1a1a1a',
+                background: filter === value ? '#1a73e8' : 'white',
+                color: filter === value ? 'white' : '#1a1a1a',
               }}
             >
-              {f === 'atRisk' ? 'At-risk only' : f === 'all' ? 'All' : f}
+              {label}
             </button>
           ))}
         </div>
@@ -73,8 +69,8 @@ export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
               <th style={styles.th}>Borrower</th>
               <th style={styles.th}>Province</th>
               <th style={styles.th}>Sector</th>
-              <th style={styles.th}>Score</th>
-              <th style={styles.th}>Grade</th>
+              <th style={styles.th}>Safety Score</th>
+              <th style={styles.th}>Safety</th>
               <th style={styles.th}></th>
             </tr>
           </thead>
@@ -89,10 +85,10 @@ export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
                   <span
                     style={{
                       ...styles.badge,
-                      background: GRADE_COLOURS[b.risk_grade] || '#999',
+                      background: SAFETY_COLOURS[b.risk_grade] || '#999',
                     }}
                   >
-                    {b.risk_grade}
+                    {safetyTierLabel(b.risk_grade)}
                   </span>
                 </td>
                 <td style={styles.td}>

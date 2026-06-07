@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import InfoTip from './common/InfoTip';
+import { safetyTierLabel } from '../constants/safetyScore';
 import { METRIC_TOOLTIPS } from '../constants/tooltips';
 
 const GRADE_COLOURS = {
@@ -11,7 +12,32 @@ const GRADE_COLOURS = {
   Medium: '#f9ab00',
   High:   '#ea4335',
 };
+const CHANGE_COLOURS = {
+  Green:  { bg: '#e6f4ea', border: '#34a853', text: '#0d5a23' },
+  Amber:  { bg: '#fef7e0', border: '#f9ab00', text: '#7a5300' },
+  Red:    { bg: '#fce8e6', border: '#ea4335', text: '#c5221f' },
+};
 const CRIB_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'XX'];
+
+function calcScoreChangePct(prevScore, newScore) {
+  const prev = Number(prevScore);
+  const next = Number(newScore);
+  if (!prev || Number.isNaN(prev) || Number.isNaN(next)) return null;
+  return ((next - prev) / prev) * 100;
+}
+
+function formatScoreChangePct(pct) {
+  if (pct == null || Number.isNaN(pct)) return 'N/A';
+  const sign = pct > 0 ? '+' : '';
+  return `${sign}${pct.toFixed(1)}%`;
+}
+
+function getScoreChangeColour(pct) {
+  if (pct == null || Number.isNaN(pct)) return CHANGE_COLOURS.Amber;
+  if (pct >= 0) return CHANGE_COLOURS.Green;
+  if (pct >= -15) return CHANGE_COLOURS.Amber;
+  return CHANGE_COLOURS.Red;
+}
 
 export default function StressTestPanel({
   customerId,
@@ -73,9 +99,10 @@ export default function StressTestPanel({
         <p style={styles.howItWorks}>
           <strong>What is a stress test?</strong> A stress test simulates
           &ldquo;what-if&rdquo; scenarios. Adjust the sliders below to see how
-          the borrower&apos;s risk score would change if their financial
+          the borrower&apos;s safety score would change if their financial
           situation deteriorated — for example, if vehicle values dropped
-          (higher LTV) or they missed payments (higher DPD). Nothing is saved
+          (higher LTV) or they missed payments (higher DPD). A higher score
+          means lower risk. Nothing is saved
           to the database — this is a simulation only.
         </p>
         <div style={styles.controlsCard}>
@@ -145,6 +172,12 @@ export default function StressTestPanel({
 
         <div style={styles.compare}>
           <RiskPanel title="Before" risk={baseline} />
+          {result && (
+            <ScoreChangeBanner
+              prevScore={baseline.risk_score}
+              newScore={result.risk_score}
+            />
+          )}
           <RiskPanel title="After" risk={result} />
         </div>
       </div>
@@ -161,6 +194,49 @@ function Field({ label, tip, children }) {
       </span>
       {children}
     </label>
+  );
+}
+
+function ScoreChangeBanner({ prevScore, newScore }) {
+  const pct = calcScoreChangePct(prevScore, newScore);
+  const palette = getScoreChangeColour(pct);
+  const delta = newScore - prevScore;
+
+  return (
+    <div
+      style={{
+        ...styles.changeBanner,
+        background: palette.bg,
+        borderColor: palette.border,
+      }}
+    >
+      <div style={styles.changeLabel}>
+        Safety Score Change
+        <InfoTip text={METRIC_TOOLTIPS.scoreChange} />
+      </div>
+      <div style={{ ...styles.changeValue, color: palette.text }}>
+        {formatScoreChangePct(pct)}
+      </div>
+      <div style={styles.changeDetail}>
+        {prevScore} → {newScore}
+        {delta !== 0 && (
+          <span style={{ color: palette.border }}>
+            {' '}
+            ({delta > 0 ? '+' : ''}
+            {delta} pts)
+          </span>
+        )}
+      </div>
+      <div style={{ ...styles.changeHint, color: palette.text }}>
+        {pct == null
+          ? 'Unable to calculate change'
+          : pct >= 0
+            ? 'Safety score held or improved'
+            : pct >= -15
+              ? 'Moderate drop in safety score'
+              : 'Significant drop in safety score'}
+      </div>
+    </div>
   );
 }
 
@@ -181,7 +257,7 @@ function RiskPanel({ title, risk }) {
         {risk.risk_score}
       </div>
       <div style={{ ...styles.gradeBadge, background: colour }}>
-        {risk.risk_grade}
+        {safetyTierLabel(risk.risk_grade)} Safety
       </div>
       {risk.compliance_breach && (
         <div style={styles.breach}>
@@ -250,8 +326,49 @@ const styles = {
     cursor: 'pointer', fontSize: 14,
   },
   compare: {
-    display: 'grid', gridTemplateColumns: '1fr 1fr',
-    gap: 16, marginTop: 24,
+    display: 'grid',
+    gridTemplateColumns: '1fr auto 1fr',
+    gap: 16,
+    marginTop: 24,
+    alignItems: 'stretch',
+  },
+  changeBanner: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    padding: '16px 20px',
+    borderRadius: 8,
+    border: '2px solid',
+    minWidth: 160,
+  },
+  changeLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#5f6368',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+  },
+  changeValue: {
+    fontSize: 32,
+    fontWeight: 700,
+    lineHeight: 1.2,
+    marginTop: 6,
+  },
+  changeDetail: {
+    fontSize: 13,
+    color: '#5f6368',
+    marginTop: 6,
+  },
+  changeHint: {
+    fontSize: 12,
+    marginTop: 8,
+    lineHeight: 1.4,
+    maxWidth: 180,
   },
   panel: {
     background: '#f4f6f8',
