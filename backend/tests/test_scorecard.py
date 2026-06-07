@@ -125,6 +125,29 @@ def test_perfect_borrower_is_low_risk(scorecard):
     assert risk["risk_score"] >= 650
 
 
+def test_medium_borrower_scores_medium_and_amber(scorecard):
+    """A borrower with middling attributes should land in the Medium band.
+
+    Assert the score is between 450 and 649 (inclusive of bounds per config)
+    and the returned colour is Amber.
+    """
+    borrower = _base_borrower(
+        crib_grade="C",
+        monthly_income=300_000,
+        monthly_obligations=90_000,  # DTI 30%
+        ltv_ratio=0.40,
+        dpd_current=5,
+        dpd_pattern=[0, 0, 5, 5, 10, 0],
+        net_worth=2_000_000,
+        app_login_freq=2,
+        sector_npl=0.07,
+    )
+    risk = scorecard.calculate(borrower)
+    assert 450 <= risk["risk_score"] <= 649
+    assert risk["risk_grade"] == "Medium"
+    assert risk["risk_colour"] == "Amber"
+
+
 # ---------------------------------------------------------------------------
 # 4. Worst-case input lands in the High/Red band even without LTV breach
 # ---------------------------------------------------------------------------
