@@ -1,8 +1,8 @@
 // Domain explanations for dashboard metrics
 
 export const METRIC_TOOLTIPS = {
-  riskScore:
-    'Composite risk rating from 0–1000 (base 500). 650–1000 = Low (Green), 450–649 = Medium (Amber), 0–449 = High (Red). LTV cap breach forces Red.',
+  safetyScore:
+    'Safety Score from 0–1000 (base 500). Red = low safety (0–449), amber = medium (450–649), green = high safety (650–1000). LTV cap breach forces red.',
   cribGrade:
     'Credit Information Bureau (Sri Lanka) rating. A = Very Low Risk, B = Low Risk, C = Average, D = High Risk, E = Very High Risk, XX = No credit history.',
   ltv:
@@ -21,4 +21,8 @@ export const METRIC_TOOLTIPS = {
     'The five dimensions of creditworthiness: Capacity (ability to pay), Character (credit history), Collateral (asset backing), Conditions (sector environment), Capital (net worth).',
   ewi:
     'Early Warning Indicators: traffic-light signals (Green/Amber/Red) that flag borrowers showing signs of deterioration before they actually default.',
+  scoreChange:
+    'Percentage change in the Safety Score after the simulated scenario. Higher scores mean lower risk. Green = score held or improved; red = significant drop under stress.',
+  geoConcentration:
+    'Share of the synthetic portfolio by Sri Lankan province. Blue bars show actual distribution; grey bars show PLC\'s 2024/25 geographic concentration targets from the Risk Management Review.',
 };

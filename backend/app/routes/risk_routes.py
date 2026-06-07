@@ -18,6 +18,19 @@ from typing import Any
 from flask import Blueprint, jsonify, request
 
 from app.queries import fetch_borrower, fetch_all_borrowers, log_risk_score
+
+# PLC 2024/25 geographic concentration reference (Risk Management Review).
+PLC_PROVINCE_TARGET_PCT: dict[str, float] = {
+    "Western":       40.1,
+    "Eastern":       12.8,
+    "North Western": 10.7,
+    "Sabaragamuwa":   7.9,
+    "Southern":       7.4,
+    "Central":        7.2,
+    "Northern":       6.1,
+    "North Central":  5.1,
+    "Uva":            4.8,
+}
 from app.scoring import Scorecard
 
 
@@ -61,6 +74,7 @@ def list_borrowers():
             "risk_grade":   risk["risk_grade"],
             "risk_score":   risk["risk_score"],
             "sector":       row.get("sector"),
+            "province":     row.get("province") or "Unknown",
             "last_updated": row["created_at"].isoformat() if row.get("created_at") else None,
         })
 
@@ -133,6 +147,7 @@ def portfolio_snapshot():
 
     by_grade = {"Low": 0, "Medium": 0, "High": 0}
     by_sector: dict[str, dict[str, Any]] = {}
+    by_province: dict[str, dict[str, Any]] = {}
     breaches = 0
     total_score = 0
     counted = 0
@@ -146,6 +161,12 @@ def portfolio_snapshot():
         entry = by_sector.setdefault(sector, {"sector": sector, "count": 0, "_sum_score": 0})
         entry["count"] += 1
         entry["_sum_score"] += risk["risk_score"]
+        province = row.get("province") or "Unknown"
+        prov_entry = by_province.setdefault(
+            province, {"province": province, "count": 0, "_sum_score": 0}
+        )
+        prov_entry["count"] += 1
+        prov_entry["_sum_score"] += risk["risk_score"]
         total_score += risk["risk_score"]
         counted += 1
 
@@ -158,10 +179,25 @@ def portfolio_snapshot():
         for e in by_sector.values()
     ]
 
+    provinces_out = sorted(
+        [
+            {
+                "province":       e["province"],
+                "count":          e["count"],
+                "pct":            round(e["count"] / counted * 100, 1) if counted else 0,
+                "avg_score":      int(round(e["_sum_score"] / e["count"])) if e["count"] else 0,
+                "plc_target_pct": PLC_PROVINCE_TARGET_PCT.get(e["province"], 0),
+            }
+            for e in by_province.values()
+        ],
+        key=lambda x: -x["count"],
+    )
+
     return jsonify({
         "total_borrowers":     counted,
         "by_grade":            by_grade,
         "by_sector":           sectors_out,
+        "by_province":         provinces_out,
         "compliance_breaches": breaches,
         "avg_portfolio_score": int(round(total_score / counted)) if counted else 0,
     })
