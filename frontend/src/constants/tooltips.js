@@ -21,4 +21,6 @@ export const METRIC_TOOLTIPS = {
     'The five dimensions of creditworthiness: Capacity (ability to pay), Character (credit history), Collateral (asset backing), Conditions (sector environment), Capital (net worth).',
   ewi:
     'Early Warning Indicators: traffic-light signals (Green/Amber/Red) that flag borrowers showing signs of deterioration before they actually default.',
+  geoConcentration:
+    'Share of the synthetic portfolio by Sri Lankan province. Blue bars show actual distribution; grey bars show PLC\'s 2024/25 geographic concentration targets from the Risk Management Review.',
 };

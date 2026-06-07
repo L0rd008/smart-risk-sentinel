@@ -71,6 +71,7 @@ export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
           <thead>
             <tr>
               <th style={styles.th}>Borrower</th>
+              <th style={styles.th}>Province</th>
               <th style={styles.th}>Sector</th>
               <th style={styles.th}>Score</th>
               <th style={styles.th}>Grade</th>
@@ -81,6 +82,7 @@ export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
             {visible.map((b) => (
               <tr key={b.customer_id} style={styles.row}>
                 <td style={styles.td}>{b.name}</td>
+                <td style={styles.td}>{b.province || '—'}</td>
                 <td style={styles.td}>{b.sector}</td>
                 <td style={styles.td}>{b.risk_score}</td>
                 <td style={styles.td}>

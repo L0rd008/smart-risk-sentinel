@@ -48,6 +48,7 @@ and by the integration tests as a readiness probe.
       "risk_grade": "Low | Medium | High",
       "risk_score": 0,
       "sector": "string",
+      "province": "string",
       "last_updated": "ISO 8601 datetime"
     }
   ],
@@ -147,7 +148,7 @@ output of the scoring engine and the primary payload for the BorrowerCard.
 ## GET /api/portfolio/snapshot
 
 **Purpose:** Aggregate view for the portfolio dashboard. Powers the doughnut
-chart and sector table.
+chart, sector table, and geographic concentration chart.
 
 **Request:** none
 
@@ -165,6 +166,15 @@ chart and sector table.
       "sector": "string",
       "count": 0,
       "avg_score": 0
+    }
+  ],
+  "by_province": [
+    {
+      "province": "string",
+      "count": 0,
+      "pct": 0.0,
+      "avg_score": 0,
+      "plc_target_pct": 0.0
     }
   ],
   "compliance_breaches": 0,

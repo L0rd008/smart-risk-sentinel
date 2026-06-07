@@ -226,8 +226,8 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
           <div>
             <h2 style={styles.name}>{borrower.name}</h2>
             <div style={styles.meta}>
-              {borrower.sector_code} · {borrower.vehicle_type} ·{' '}
-              CRIB {borrower.crib_grade}
+              {borrower.province} · {borrower.sector_code} · {borrower.vehicle_type}{' '}
+              · CRIB {borrower.crib_grade}
             </div>
           </div>
           <div style={styles.scoreBlock}>
