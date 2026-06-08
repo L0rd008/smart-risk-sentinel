@@ -1,0 +1,64 @@
+{
+  "original_metrics_file": null,
+  "original_report_snapshot": null,
+  "metrics_original_orientation": {
+    "auc": 0.38795595708639186,
+    "gini": -0.2240880858272163,
+    "ks": 0.18678712591756064,
+    "confusion_matrix": {
+      "tp": 114,
+      "tn": 449,
+      "fp": 321,
+      "fn": 116
+    },
+    "precision_recall_f1": {
+      "precision": 0.2620689655172414,
+      "recall": 0.4956521739130435,
+      "f1": 0.3428571428571429
+    },
+    "capture_rate_high_band": 0.4956521739130435,
+    "brier_score": 0.21227871770914875
+  },
+  "metrics_corrected_orientation": {
+    "auc": 0.6119932241671372,
+    "gini": 0.2239864483342744,
+    "ks": 0.1867871259175607,
+    "confusion_matrix": {
+      "tp": 114,
+      "tn": 449,
+      "fp": 321,
+      "fn": 116
+    },
+    "precision_recall_f1": {
+      "precision": 0.2620689655172414,
+      "recall": 0.4956521739130435,
+      "f1": 0.3428571428571429
+    },
+    "capture_rate_high_band": 0.4956521739130435,
+    "brier_score": 0.21227871770914875
+  },
+  "band_separation": {
+    "mean_high_pred_pd": 0.5533067637035753,
+    "mean_low_pred_pd": 0.0007934408886537929,
+    "band_separation": 0.5525133228149216
+  },
+  "stress": {
+    "gini_stress_proxy": 0.024477611940298516,
+    "auc_stress_proxy": 0.5122388059701493
+  },
+  "model_confidence_corrected": {
+    "calibration_quality": 0.7877212822908513,
+    "risk_band_separation": 0.5525133228149216,
+    "stress_test_stability": 0.8004911636060241,
+    "model_confidence_score": 0.7209898588426242,
+    "weights": {
+      "calibration": 0.4,
+      "separation": 0.3,
+      "stability": 0.3
+    }
+  },
+  "notes": {
+    "safety_score_interpretation": "score near 1000 = very safe (low default risk); near 0 = very risky",
+    "correction": "AUC and Gini must be computed on a variable where larger values indicate higher default propensity; for a safety score this requires inversion (e.g. -risk_score or 1 - scaled_score)"
+  }
+}
