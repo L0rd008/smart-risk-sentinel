@@ -172,7 +172,86 @@ def test_worst_case_borrower_is_high_risk(scorecard):
 
 
 # ---------------------------------------------------------------------------
-# 5. The response shape matches the API contract
+# 5. Score band boundary edges
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "overrides, expected_score, expected_grade, expected_colour",
+    [
+        (
+            {
+                "monthly_income": 100_000,
+                "monthly_obligations": 30_000,  # DTI 30% -> capacity +200
+                "crib_grade": "C",
+                "dpd_current": 45,              # character -120
+                "ltv_ratio": 0.50,              # collateral -300, no breach
+                "sector_npl": 0.30,
+                "net_worth": 720_000,           # 2x annual obligation
+            },
+            449,
+            "High",
+            "Red",
+        ),
+        (
+            {
+                "monthly_income": 100_000,
+                "monthly_obligations": 10_000,  # DTI 10% -> capacity +250
+                "crib_grade": "E",
+                "dpd_current": 45,              # character -300
+                "ltv_ratio": 0.50,              # collateral -300, no breach
+                "sector_npl": 0.08,
+                "net_worth": 2_000_000,         # >12x annual obligation
+            },
+            450,
+            "Medium",
+            "Amber",
+        ),
+        (
+            {
+                "monthly_income": 100_000,
+                "monthly_obligations": 30_000,  # DTI 30% -> capacity +200
+                "crib_grade": "B",
+                "dpd_current": 20,              # character +30
+                "ltv_ratio": 0.25,
+                "sector_npl": 0.04,
+                "net_worth": 720_000,           # 2x annual obligation
+            },
+            649,
+            "Medium",
+            "Amber",
+        ),
+        (
+            {
+                "monthly_income": 100_000,
+                "monthly_obligations": 10_000,  # DTI 10% -> capacity +250
+                "crib_grade": "C",
+                "dpd_current": 5,               # character 0
+                "ltv_ratio": 0.25,
+                "sector_npl": 0.08,
+                "net_worth": 2_000_000,         # >12x annual obligation
+            },
+            650,
+            "Low",
+            "Green",
+        ),
+    ],
+)
+def test_score_band_boundaries(
+    scorecard,
+    overrides,
+    expected_score,
+    expected_grade,
+    expected_colour,
+):
+    risk = scorecard.calculate(_base_borrower(**overrides))
+    assert risk["compliance_breach"] is False
+    assert risk["risk_score"] == expected_score
+    assert risk["risk_grade"] == expected_grade
+    assert risk["risk_colour"] == expected_colour
+
+
+# ---------------------------------------------------------------------------
+# 6. The response shape matches the API contract
 # ---------------------------------------------------------------------------
 
 def test_calculate_returns_full_contract_shape(scorecard):
@@ -200,7 +279,7 @@ def test_calculate_returns_full_contract_shape(scorecard):
 
 
 # ---------------------------------------------------------------------------
-# 6. LTV gate is pure and independent
+# 7. LTV gate is pure and independent
 # ---------------------------------------------------------------------------
 
 def test_ltv_gate_function_directly():

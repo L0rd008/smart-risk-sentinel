@@ -9,23 +9,23 @@
 
 ## 1. Project name and academic context
 
-**Project name:** Smart-Risk Sentinel
-**Team:** Pro Force (Group E)
-**Institution:** University of Moratuwa, Sri Lanka
-**Course context:** Undergraduate group software engineering project
-**Time-box:** ~4 weeks, 5 developers
+**Project name:** Smart-Risk Sentinel  
+**Team:** Pro Force (Group E)  
+**Institution:** University of Moratuwa, Sri Lanka  
+**Course context:** Undergraduate group software engineering project  
+**Time-box:** ~4 weeks, 5 developers  
 **Deliverable:** A working prototype decision-support web application —
 **not** a production banking system. Every architectural decision in this
 project must be justifiable against that prototype scope. We do not need
 five-nines availability, multi-factor auth, real CRIB integration, or
-cloud deployment. We need a clear, demoable, end-to-end story.
+cloud deployment. We need a clear, demoable, end-to-end story.  
 
 ---
 
 ## 2. Client background
 
-**Client organisation:** People's Leasing & Finance PLC (PLC)
-**Sector:** Non-Bank Financial Institution (NBFI), Sri Lanka
+**Client organisation:** People's Leasing & Finance PLC (PLC)  
+**Sector:** Non-Bank Financial Institution (NBFI), Sri Lanka  
 **Position:** One of the largest licensed finance companies in the country,
 specialising in leasing (especially motor vehicles) and gold loans.
 
@@ -63,7 +63,7 @@ PLC's existing risk infrastructure has a structural blind spot called the
 
 Concretely:
 - **Pre-disbursement:** The credit officer has CRIB data, income docs, and
-  vehicle valuation. A decision is made manually using the 5 Cs framework.
+  vehicle valuation. A decision is made manually using the 5 Cs framework.  
 - **Post-disbursement:** The borrower disappears from the officer's view
   until a missed payment hits the monthly delinquency report.
 - **Recovery:** By the time the case lands in the recovery queue, the
