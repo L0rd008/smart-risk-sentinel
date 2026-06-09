@@ -77,7 +77,7 @@ endpoints in v1.0 but the table exists so it can be wired up later.
 |---------------------|---------------|----------------------------------------------------------|
 | `log_id`            | UUID PK       |                                                          |
 | `customer_id`       | UUID FK       | → `borrowers.customer_id`                                |
-| `score`             | INT           | 0–1000                                                   |
+| `score`             | INT           | Formula range 215–727; DB CHECK allows 0–1000 as guard   |
 | `grade`             | VARCHAR(10)   | 'Low' / 'Medium' / 'High'                                |
 | `compliance_breach` | BOOLEAN       |                                                          |
 | `calculated_at`     | TIMESTAMPTZ   | Default `now()`                                          |

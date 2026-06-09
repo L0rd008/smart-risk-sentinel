@@ -1,21 +1,21 @@
-// ScoreLegend — Green / Amber / Red bands on the 0–1000 score scale.
+// ScoreLegend — Green / Amber / Red bands on the 215–727 score scale.
 
 import React from 'react';
 
 const BANDS = [
-  { color: '#34a853', grade: 'Low', range: '1000-650' },
-  { color: '#f9ab00', grade: 'Med', range: '649-450' },
-  { color: '#ea4335', grade: 'High', range: '449-0' },
+  { color: '#ea4335', label: 'Low',    range: '215–419' },
+  { color: '#f9ab00', label: 'Medium', range: '420–619' },
+  { color: '#34a853', label: 'High',   range: '620–727' },
 ];
 
 export default function ScoreLegend() {
   return (
-    <div style={styles.wrap} aria-label="Risk score bands">
+    <div style={styles.wrap} aria-label="Safety score bands: Low 215–419, Medium 420–619, High 620–727">
       <div style={styles.grid}>
         {BANDS.map((band) => (
-          <div key={band.grade} style={styles.col}>
+          <div key={band.range} style={styles.col}>
             <div style={{ ...styles.bar, background: band.color }} />
-            <span style={styles.grade}>{band.grade}</span>
+            <span style={styles.grade}>{band.label}</span>
             <span style={styles.range}>{band.range}</span>
           </div>
         ))}

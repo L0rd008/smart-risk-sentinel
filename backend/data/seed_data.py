@@ -212,8 +212,11 @@ PERSONA_NEW_TO_CREDIT       = "new_to_credit"
 PERSONA_TOURISM             = "tourism_borrower"
 PERSONA_RECOVERING          = "recovering_distressed"
 
-# Persona mix (weights sum to 1.0). Designed to produce approximately
-# 70% Low (Green), 20% Medium (Amber), 10% High (Red) after scoring.
+# Persona mix (weights sum to 1.0). Expected distribution with corrected
+# thresholds (Low >=620, High <420): approx. 20–25% Low (Green),
+# 55–65% Medium (Amber), 15–20% High (Red) — calibrated to represent a
+# healthy but imperfect NBFI portfolio consistent with PLC's reported
+# NPL structure (sector NPL ~5.86%, NBFI sector ~11.3% as of 2024/25).
 PERSONA_MIX: list[tuple[str, float]] = [
     (PERSONA_PRIME_SALARIED,      0.30),
     (PERSONA_SME_TRUCK,           0.22),

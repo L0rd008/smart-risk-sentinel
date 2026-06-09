@@ -86,7 +86,7 @@ must match the columns you write).
   rather than re-implementing the cap check.
 - At least **5 unit tests** in `backend/tests/test_scorecard.py` covering:
   LTV breach, CRIB grade XX, perfect score, guaranteed Red, an Amber
-  edge case at exactly 449/450 and 649/650.
+  edge case at exactly 419/420 and 619/620.
 
 ### Dependencies
 None for the class itself — you can develop against any dict matching the

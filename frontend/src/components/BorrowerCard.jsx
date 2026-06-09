@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import InfoTip from './common/InfoTip';
 import ScoreLegend from './common/ScoreLegend';
+import { riskGradeLabel } from '../constants/safetyScore';
 import { METRIC_TOOLTIPS } from '../constants/tooltips';
 
 const COLOURS = {
@@ -226,14 +227,14 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
           <div>
             <h2 style={styles.name}>{borrower.name}</h2>
             <div style={styles.meta}>
-              {borrower.sector_code} · {borrower.vehicle_type} ·{' '}
-              CRIB {borrower.crib_grade}
+              {borrower.province} · {borrower.sector_code} · {borrower.vehicle_type}{' '}
+              · CRIB {borrower.crib_grade}
             </div>
           </div>
           <div style={styles.scoreBlock}>
             <div style={styles.scoreLabel}>
-              Risk Score
-              <InfoTip text={METRIC_TOOLTIPS.riskScore} />
+              Safety Score
+              <InfoTip text={METRIC_TOOLTIPS.safetyScore} />
             </div>
             <div style={{ ...styles.scoreNumber, color: palette.border }}>
               {risk.risk_score}
@@ -246,7 +247,7 @@ export default function BorrowerCard({ customerId, onStressTest, onBack }) {
                 color: '#fff',
               }}
             >
-              {risk.risk_grade}
+              {riskGradeLabel(risk.risk_grade)}
             </div>
           </div>
         </header>
