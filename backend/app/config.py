@@ -22,6 +22,7 @@ class Config:
 
     FLASK_ENV: str = os.getenv("FLASK_ENV", "development")
     DEBUG: bool = FLASK_ENV == "development"
+    FLASK_PORT: int = int(os.getenv("FLASK_PORT", "5000"))
 
     @classmethod
     def db_dsn(cls) -> str:
