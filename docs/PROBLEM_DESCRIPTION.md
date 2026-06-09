@@ -84,7 +84,7 @@ Smart-Risk Sentinel sits in that gap.
 A web application that:
 
 1. Stores a synthetic portfolio of ~1,000 borrowers in PostgreSQL.
-2. Calculates a borrower risk score (0–1000) using a hybrid expert-
+2. Calculates a borrower risk score (formula range approx. 215–727) using a hybrid expert-
    statistical scorecard built on the 5 Cs of credit.
 3. Assigns a risk grade — **Low / Medium / High** (Green / Amber / Red).
 4. Flags Early Warning Indicators (EWIs) when thresholds are breached.
@@ -142,9 +142,13 @@ sit. This alignment is for explainability when presenting to the client.
 Final Score = Base Score (500) + Σ (Category Weight × Attribute Points)
 ```
 
-Score range: 0–1000, with 500 as the neutral starting point. Each of the
-five categories produces an attribute-points value (typically -300 to
-+300), which is multiplied by the category weight and added to the base.
+Score range: approximately 215–727 (formula-derived). The neutral starting
+point is 500. Each category produces attribute points (typically −300 to
++250), multiplied by the category weight and summed. The `max(0, min(1000,
+...)` clamp in code is never triggered by real inputs — 0 and 1000 are
+unreachable with the current bins. Character's ceiling is 190, not 250,
+because it is a blend (0.6 × CRIB grade pts + 0.4 × DPD pts); neither
+dimension alone can reach the full 250-point ceiling.
 
 ### The 5 Cs and their weights
 
@@ -160,9 +164,9 @@ Weights sum to 100%. They live in `backend/app/scoring/scorecard_config.json`
 so the team can tune without code changes.
 
 ### Score bands
-- **650–1000** → Low Risk (Green)
-- **450–649** → Medium Risk (Amber)
-- **0–449** → High Risk (Red)
+- **620–727** → Low Risk (Green)   ← formula ceiling is 727, not 1000
+- **420–619** → Medium Risk (Amber)
+- **215–419** → High Risk (Red)     ← formula floor is 215, not 0
 
 ### Worked example
 A salaried customer applying for a private motor car lease:

@@ -74,6 +74,7 @@ class Scorecard:
         raw_score = self.base + sum(
             self.weights[c] * pts for c, pts in category_scores.items()
         )
+        # Formula range is approx. 215–727; clamp guards against unexpected inputs.
         score = max(0, min(1000, int(round(raw_score))))
 
         gate = ltv_gate(
