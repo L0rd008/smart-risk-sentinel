@@ -2,7 +2,7 @@
 
 export const METRIC_TOOLTIPS = {
   safetyScore:
-    'Safety Score from 0–1000 (base 500). Red = low safety (0–449), amber = medium (450–649), green = high safety (650–1000). LTV cap breach forces red.',
+    'Safety Score from 0–1000 (base 500). Higher is better. Red = high risk (0–449), amber = medium risk (450–649), green = low risk (650–1000). LTV cap breach forces red.',
   cribGrade:
     'Credit Information Bureau (Sri Lanka) rating. A = Very Low Risk, B = Low Risk, C = Average, D = High Risk, E = Very High Risk, XX = No credit history.',
   ltv:

@@ -3,14 +3,14 @@
 import React from 'react';
 
 const BANDS = [
-  { color: '#ea4335', label: 'Low', range: '0–449' },
+  { color: '#ea4335', label: 'High', range: '0–449' },
   { color: '#f9ab00', label: 'Medium', range: '450–649' },
-  { color: '#34a853', label: 'High', range: '650–1000' },
+  { color: '#34a853', label: 'Low', range: '650–1000' },
 ];
 
 export default function ScoreLegend() {
   return (
-    <div style={styles.wrap} aria-label="Safety score bands from 0 to 1000">
+    <div style={styles.wrap} aria-label="Safety score risk bands from 0 to 1000">
       <div style={styles.grid}>
         {BANDS.map((band) => (
           <div key={band.range} style={styles.col}>

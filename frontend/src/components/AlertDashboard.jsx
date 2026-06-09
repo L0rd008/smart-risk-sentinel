@@ -3,7 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
-import { ALERT_FILTERS, SAFETY_COLOURS, safetyTierLabel } from '../constants/safetyScore';
+import { ALERT_FILTERS, GRADE_COLOURS } from '../constants/safetyScore';
 
 const GRADE_SEVERITY = { High: 0, Medium: 1, Low: 2 };
 
@@ -70,7 +70,7 @@ export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
               <th style={styles.th}>Province</th>
               <th style={styles.th}>Sector</th>
               <th style={styles.th}>Safety Score</th>
-              <th style={styles.th}>Safety</th>
+              <th style={styles.th}>Risk</th>
               <th style={styles.th}></th>
             </tr>
           </thead>
@@ -85,10 +85,10 @@ export default function AlertDashboard({ onBorrowerClick, onStressTestClick }) {
                   <span
                     style={{
                       ...styles.badge,
-                      background: SAFETY_COLOURS[b.risk_grade] || '#999',
+                      background: GRADE_COLOURS[b.risk_grade] || '#999',
                     }}
                   >
-                    {safetyTierLabel(b.risk_grade)}
+                    {b.risk_grade}
                   </span>
                 </td>
                 <td style={styles.td}>
