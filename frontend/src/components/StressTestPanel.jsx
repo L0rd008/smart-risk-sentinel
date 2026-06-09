@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import InfoTip from './common/InfoTip';
-import { safetyTierLabel } from '../constants/safetyScore';
+import { riskGradeLabel } from '../constants/safetyScore';
 import { METRIC_TOOLTIPS } from '../constants/tooltips';
 
 const GRADE_COLOURS = {
@@ -257,7 +257,7 @@ function RiskPanel({ title, risk }) {
         {risk.risk_score}
       </div>
       <div style={{ ...styles.gradeBadge, background: colour }}>
-        {safetyTierLabel(risk.risk_grade)} Safety
+        {riskGradeLabel(risk.risk_grade)}
       </div>
       {risk.compliance_breach && (
         <div style={styles.breach}>
