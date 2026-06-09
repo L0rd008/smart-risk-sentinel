@@ -136,9 +136,9 @@ output of the scoring engine and the primary payload for the BorrowerCard.
 ```
 
 **Grading rules:**
-- `risk_score >= 650` → `Low / Green`
-- `450 <= risk_score < 650` → `Medium / Amber`
-- `risk_score < 450` → `High / Red`
+- `risk_score >= 620` → `Low / Green`
+- `420 <= risk_score < 620` → `Medium / Amber`
+- `risk_score < 420` → `High / Red`
 - If `compliance_breach == true`, the grade is forced to `High / Red`
   regardless of `risk_score`. The numeric `risk_score` is still returned
   so the frontend can show "score was 720 but flagged Red due to LTV breach".

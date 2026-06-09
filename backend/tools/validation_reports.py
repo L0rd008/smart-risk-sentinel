@@ -175,7 +175,7 @@ def default_calibration_curve(df: pd.DataFrame, outpath: Path, sc: Scorecard) ->
     df["delinquent"] = df["dpd_current"].fillna(0).astype(int) >= 30
 
     # Use score bands from config to show calibration per risk band
-    bands = sc.config.get("score_bands", {"low_min": 650, "medium_min": 450})
+    bands = sc.config.get("score_bands", {"low_min": 620, "medium_min": 420})
     def risk_band(score: int) -> str:
         if score >= bands["low_min"]:
             return "Low"
@@ -220,7 +220,7 @@ def regulatory_scatter(df: pd.DataFrame, outpath: Path) -> None:
     ax.set_ylabel("Final score")
     ax.set_title("Regulatory boundary: LTV vs final score (colour = risk band)")
     ax.set_xlim(left=0)
-    ax.set_ylim(0, 1000)
+    ax.set_ylim(200, 750)  # formula range 215–727; narrow view for clarity
     ax.legend()
     fig.tight_layout()
     fig.savefig(outpath, dpi=150)
