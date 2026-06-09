@@ -2,25 +2,43 @@
   "version": "1.1",
   "base_score": 500,
   "score_bands": {
-    "low_min": 650,
-    "medium_min": 450,
-    "high_max": 449
+    "low_min": 620,
+    "medium_min": 420,
+    "high_max": 419
   },
   "category_weights": {
     "capacity": 0.35,
-    "character": 0.30,
-    "collateral": 0.20,
-    "conditions": 0.10,
+    "character": 0.3,
+    "collateral": 0.2,
+    "conditions": 0.1,
     "capital": 0.05
   },
   "bins": {
     "dti": [
-      { "max": 0.20, "points": 250 },
-      { "max": 0.30, "points": 200 },
-      { "max": 0.40, "points": 100 },
-      { "max": 0.50, "points": 0 },
-      { "max": 0.60, "points": -150 },
-      { "max": 1.00, "points": -300 }
+      {
+        "max": 0.2,
+        "points": 250
+      },
+      {
+        "max": 0.3,
+        "points": 200
+      },
+      {
+        "max": 0.4,
+        "points": 100
+      },
+      {
+        "max": 0.5,
+        "points": 0
+      },
+      {
+        "max": 0.6,
+        "points": -150
+      },
+      {
+        "max": 1.0,
+        "points": -300
+      }
     ],
     "crib_grade": {
       "A": 250,
@@ -31,49 +49,132 @@
       "XX": -150
     },
     "ltv_private": [
-      { "max": 0.30, "points": 250 },
-      { "max": 0.40, "points": 150 },
-      { "max": 0.49, "points": 0 },
-      { "max": 1.00, "points": -300 }
+      {
+        "max": 0.3,
+        "points": 250
+      },
+      {
+        "max": 0.4,
+        "points": 150
+      },
+      {
+        "max": 0.49,
+        "points": 0
+      },
+      {
+        "max": 1.0,
+        "points": -300
+      }
     ],
     "ltv_commercial": [
-      { "max": 0.50, "points": 250 },
-      { "max": 0.60, "points": 150 },
-      { "max": 0.69, "points": 0 },
-      { "max": 1.00, "points": -300 }
+      {
+        "max": 0.5,
+        "points": 250
+      },
+      {
+        "max": 0.6,
+        "points": 150
+      },
+      {
+        "max": 0.69,
+        "points": 0
+      },
+      {
+        "max": 1.0,
+        "points": -300
+      }
     ],
     "sector_npl": [
-      { "max": 0.05, "points": 200 },
-      { "max": 0.10, "points": 0 },
-      { "max": 0.20, "points": -150 },
-      { "max": 1.00, "points": -250 }
+      {
+        "max": 0.05,
+        "points": 200
+      },
+      {
+        "max": 0.1,
+        "points": 0
+      },
+      {
+        "max": 0.2,
+        "points": -150
+      },
+      {
+        "max": 1.0,
+        "points": -250
+      }
     ],
     "net_worth_multiple": [
-      { "max": 1.0, "points": -100 },
-      { "max": 3.0, "points": 0 },
-      { "max": 6.0, "points": 100 },
-      { "max": 12.0, "points": 200 },
-      { "max": 9999.0, "points": 250 }
+      {
+        "max": 1.0,
+        "points": -100
+      },
+      {
+        "max": 3.0,
+        "points": 0
+      },
+      {
+        "max": 6.0,
+        "points": 100
+      },
+      {
+        "max": 12.0,
+        "points": 200
+      },
+      {
+        "max": 9999.0,
+        "points": 250
+      }
     ],
     "dpd_current": [
-      { "max": 2, "points": 100 },
-      { "max": 10, "points": 0 },
-      { "max": 30, "points": -150 },
-      { "max": 9999, "points": -300 }
+      {
+        "max": 2,
+        "points": 100
+      },
+      {
+        "max": 10,
+        "points": 0
+      },
+      {
+        "max": 30,
+        "points": -150
+      },
+      {
+        "max": 9999,
+        "points": -300
+      }
     ]
   },
   "ewi_thresholds": {
-    "payment_delay": { "green_max": 2, "amber_max": 10 },
-    "crib_amber_set": ["D"],
-    "crib_red_set": ["E", "XX"],
-    "ltv_private": { "green_max": 0.40, "amber_max": 0.49 },
-    "ltv_commercial": { "green_max": 0.60, "amber_max": 0.69 },
-    "app_login": { "green_min": 4, "amber_min": 1 },
-    "sector_npl": { "green_max": 0.05, "amber_max": 0.10 }
+    "payment_delay": {
+      "green_max": 2,
+      "amber_max": 10
+    },
+    "crib_amber_set": [
+      "D"
+    ],
+    "crib_red_set": [
+      "E",
+      "XX"
+    ],
+    "ltv_private": {
+      "green_max": 0.4,
+      "amber_max": 0.49
+    },
+    "ltv_commercial": {
+      "green_max": 0.6,
+      "amber_max": 0.69
+    },
+    "app_login": {
+      "green_min": 4,
+      "amber_min": 1
+    },
+    "sector_npl": {
+      "green_max": 0.05,
+      "amber_max": 0.1
+    }
   },
   "recommended_actions": {
-    "Low":    "Routine monitoring. Cross-sell eligible.",
+    "Low": "Routine monitoring. Cross-sell eligible.",
     "Medium": "Officer outreach within 14 days. Verify collateral value and DPD trend.",
-    "High":   "Immediate field visit. Restructure or recovery escalation."
+    "High": "Immediate field visit. Restructure or recovery escalation."
   }
 }
